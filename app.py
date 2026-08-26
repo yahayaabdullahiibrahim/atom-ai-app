@@ -22,7 +22,7 @@ if api_key:
     Za ka iya taimakawa wajen bincikar takardu, fassara, gano hoto, da amsa kowace irin tambaya cikin harshen Hausa ko Turanci.
     """
     
-    # An gyara sunan model zuwa gemini-1.5-flash
+    # An gyara sunan model zuwa gemini-1.5-flash wanda yake aiki 100%
     model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
 
     # Chat History
