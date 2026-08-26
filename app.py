@@ -16,7 +16,7 @@ api_key = st.sidebar.text_input("🔑 Saka Gemini API Key:", type="password")
 
 if api_key:
     # Ƙirƙirar GenAI Client
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(api_key=api_key.strip())
     
     system_prompt = """
     Sunanka ATOM. Kai gwanin AI ne mai matukar basira da iyawa.
@@ -64,8 +64,9 @@ if api_key:
             with st.chat_message("assistant"):
                 with st.spinner("Atom yana tunani..."):
                     try:
+                        # An sauya model zuwa gemini-3.6-flash
                         response = client.models.generate_content(
-                            model='gemini-2.5-flash',
+                            model='gemini-3.6-flash',
                             contents=full_prompt,
                             config=types.GenerateContentConfig(
                                 system_instruction=system_prompt,
@@ -88,8 +89,9 @@ if api_key:
             if st.button("🔍 Binciki Hoton Yanzu"):
                 with st.spinner("Atom yana bincikar hoton..."):
                     try:
+                        # An sauya model zuwa gemini-3.6-flash
                         response = client.models.generate_content(
-                            model='gemini-2.5-flash',
+                            model='gemini-3.6-flash',
                             contents=[img, image_prompt],
                         )
                         st.write("### 🤖 Sakamakon Atom:")
