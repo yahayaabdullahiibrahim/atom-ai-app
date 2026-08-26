@@ -22,7 +22,8 @@ if api_key:
     Za ka iya taimakawa wajen bincikar takardu, fassara, gano hoto, da amsa kowace irin tambaya cikin harshen Hausa ko Turanci.
     """
     
-    model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=system_prompt)
+    # An gyara sunan model zuwa gemini-1.5-flash
+    model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
 
     # Chat History
     if "messages" not in st.session_state:
