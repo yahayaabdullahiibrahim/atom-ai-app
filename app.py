@@ -4,11 +4,12 @@ from google.genai import types
 from PIL import Image
 import PyPDF2
 import docx
+import io
 
 st.set_page_config(page_title="Atom AI - Pro", page_icon="🤖", layout="wide")
 
 st.title("🤖 Atom AI Assistant")
-st.caption("Cikakken AI mai gano hoto, karanta takardu (PDF/Docx), da amsa tambayoyi.")
+st.caption("Cikakken AI mai amsa tambayoyi, gano hoto, karanta takardu, da zana sababbin hotuna.")
 
 # Sidebar Settings
 st.sidebar.header("⚙️ Saitunan Atom AI")
@@ -28,8 +29,9 @@ if api_key:
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    tab1, tab2 = st.tabs(["💬 Hira & Bincikar Takardu (PDF/Docx)", "🖼️ Bincikar Hotuna"])
+    tab1, tab2, tab3 = st.tabs(["💬 Hira & Takardu", "🖼️ Bincikar Hoto", "🎨 Zana Hoto (Generate Image)"])
 
+    # TAB 1: Chat & Documents
     with tab1:
         uploaded_doc = st.file_uploader("📄 Loda Fayil (PDF ko Word Docx) don Atom ya bincika:", type=["pdf", "docx", "txt"])
         doc_text = ""
@@ -64,7 +66,6 @@ if api_key:
             with st.chat_message("assistant"):
                 with st.spinner("Atom yana tunani..."):
                     try:
-                        # An sauya model zuwa gemini-3.6-flash
                         response = client.models.generate_content(
                             model='gemini-3.6-flash',
                             contents=full_prompt,
@@ -77,6 +78,7 @@ if api_key:
                     except Exception as e:
                         st.error(f"Kuskure ya faru: {e}")
 
+    # TAB 2: Image Vision (Analysis)
     with tab2:
         st.subheader("🖼️ Loda Hoto don Atom ya bincika")
         uploaded_image = st.file_uploader("Zaɓi hoto...", type=["jpg", "jpeg", "png"], key="vision_uploader")
@@ -89,7 +91,6 @@ if api_key:
             if st.button("🔍 Binciki Hoton Yanzu"):
                 with st.spinner("Atom yana bincikar hoton..."):
                     try:
-                        # An sauya model zuwa gemini-3.6-flash
                         response = client.models.generate_content(
                             model='gemini-3.6-flash',
                             contents=[img, image_prompt],
@@ -98,6 +99,31 @@ if api_key:
                         st.write(response.text)
                     except Exception as e:
                         st.error(f"Kuskure ya faru: {e}")
+
+    # TAB 3: Image Generation (Zana Hoto)
+    with tab3:
+        st.subheader("🎨 Zana Sabon Hoto tare da Atom (Imagen 3)")
+        gen_prompt = st.text_area("Bada bayanin hoton da kake son Atom ya zana ma (Zai fi kyau a Turanci):", "A futuristic red sports car driving on a mountain highway at sunset, high quality, 4k photorealistic")
+        
+        if st.button("✨ Zana Hoton Yanzu"):
+            with st.spinner("Atom yana zana hotonka... Da fatan za a jira kaɗan"):
+                try:
+                    result = client.models.generate_images(
+                        model='imagen-3.0-generate-002',
+                        prompt=gen_prompt,
+                        config=types.GenerateImagesConfig(
+                            number_of_images=1,
+                            output_mime_type="image/jpeg",
+                            aspect_ratio="1:1"
+                        )
+                    )
+                    
+                    for generated_image in result.generated_images:
+                        image = Image.open(io.BytesIO(generated_image.image.image_bytes))
+                        st.image(image, caption=f"Sakamako: {gen_prompt}", use_container_width=True)
+                        st.success("✅ An ƙirƙiri hoton cikin nasara!")
+                except Exception as e:
+                    st.error(f"Kuskure ya faru wajen ƙirƙirar hoto: {e}")
 
 else:
     st.warning("⚠️ Da fatan za ka saka Gemini API Key ɗinka a gefen hagu domin fara amfani da dukkan fasahohin Atom AI.")
