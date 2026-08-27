@@ -6,7 +6,6 @@ import PyPDF2
 import docx
 import io
 import urllib.parse
-import requests
 import uuid
 
 # 1. Page Configuration
@@ -112,7 +111,6 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
     }
 
-    /* Hide Streamlit Branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
@@ -270,22 +268,22 @@ if api_key:
                     except Exception as e:
                         st.error(f"Kuskure ya faru: {e}")
 
-    # ---------------- TAB 3: IMAGE GENERATION ----------------
+    # ---------------- TAB 3: HIGH-QUALITY IMAGE GENERATION ----------------
     with tab3:
-        st.markdown("### 🎨 Zana Hoto Mai Matukar Kyau")
-        st.caption("Bayyana irin hoton da kake bukata, ATOM zai zana maka shi cikin dakikoki.")
+        st.markdown("### 🎨 Zana Hoto Mai Matukar Kyau (HD/4K)")
+        st.caption("Bayyana irin hoton da kake bukata ta amfani da kalmomi daki-daki.")
         
         gen_prompt = st.text_area(
             "Rubuta bayanin hoton (Prompt):", 
-            "A futuristic red sports car driving on a mountain highway at sunset, high quality, 4k photorealistic",
+            "A realistic portrait of a young person in golden hour lighting, sharp focus, highly detailed skin texture, 8k resolution, photorealistic",
             height=100
         )
         
         if st.button("✨ Zana Hoton Yanzu"):
-            with st.spinner("ATOM yana tsara hotonka..."):
+            with st.spinner("ATOM yana tsara hotonku cikin inganci..."):
                 success = False
                 
-                # Primary Attempt: Google Imagen 3
+                # Gwaji na 1: Google Imagen 3
                 try:
                     result = client.models.generate_images(
                         model='imagen-3.0-generate-002',
@@ -299,22 +297,26 @@ if api_key:
                     
                     for generated_image in result.generated_images:
                         image = Image.open(io.BytesIO(generated_image.image.image_bytes))
-                        st.image(image, caption=f"Sakamako (Google Imagen): {gen_prompt}", use_container_width=True)
-                        st.success("✅ An zana hoton ta hanyar Google Imagen Engine!")
+                        st.image(image, caption=f"Sakamako (Google Imagen Ultra): {gen_prompt}", use_container_width=True)
+                        st.success("✅ An zana hoton mai inganci ta Google Imagen!")
                         success = True
                 except Exception:
-                    st.warning("⚠️ Engine din Google yana cunkoso. Muna amfani da Direct Render Engine...")
+                    st.info("ℹ️ Google Imagen na samun cunkoso, muna fito da hoton ta amfani da High-Resolution Render Engine...")
 
-                # Fallback Render Engine (Direct URL stream)
+                # Gwaji na 2: High-Quality Flux Render Engine
                 if not success:
                     try:
-                        encoded_prompt = urllib.parse.quote(gen_prompt)
-                        direct_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
+                        # Auto-enhance prompt for HD clarity
+                        enhanced_prompt = f"{gen_prompt}, 8k resolution, highly detailed, photorealistic, cinematic lighting, sharp focus"
+                        encoded_prompt = urllib.parse.quote(enhanced_prompt)
                         
-                        st.image(direct_url, caption=f"Sakamako (Direct AI Render): {gen_prompt}", use_container_width=True)
-                        st.success("✅ An zana hoton cikin nasara!")
+                        # High Definition Model URL Stream (Flux Model)
+                        hd_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1080&height=1080&model=flux&nologo=true&enhance=true"
+                        
+                        st.image(hd_url, caption=f"Sakamako (HD Flux Engine): {gen_prompt}", use_container_width=True)
+                        st.success("✅ An zana hoton HD mai matukar inganci da kyau!")
                     except Exception as fallback_error:
-                        st.error(f"Kuskure wajen haɗawa: {fallback_error}")
+                        st.error(f"Kuskure: {fallback_error}")
 
 else:
     st.warning("⚠️ Da fatan za ka saka Gemini API Key ɗinka a gefen hagu (Sidebar) domin Fara amfani da ATOM AI.")
