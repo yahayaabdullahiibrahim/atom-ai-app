@@ -4,159 +4,191 @@ from google.genai import types
 from PIL import Image
 import PyPDF2
 import docx
+import io
 import urllib.parse
 import uuid
 import random
-import time
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="ATOM AI - NextGen Creative Suite", 
-    page_icon="⚡", 
+    page_title="ATOM AI - Modern Workspace", 
+    page_icon="🤖", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 2. Advanced Ultra-Modern Glassmorphism CSS
+# 2. Advanced Modern Dark Theme CSS (Fixing Text Visibility)
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    /* Global Styles & Text Visibility Fix */
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
     
     html, body, [data-testid="stAppViewContainer"] {
-        background: #030712;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        color: #F3F4F6;
+        background-color: #0B0E14; /* Darker Background */
+        font-family: 'Space Grotesk', sans-serif;
+        color: #E2E8F0; /* Off-White Text globally */
+    }
+    
+    /* Ensuring all generic Streamlit texts are visible */
+    .stText, .stMarkdown, p, span, label {
+        color: #E2E8F0 !important;
     }
 
-    /* Background Neon Glows */
-    [data-testid="stAppViewContainer"]::before {
-        content: "";
-        position: fixed;
-        top: -100px;
-        left: -100px;
-        width: 400px;
-        height: 400px;
-        background: rgba(99, 102, 241, 0.15);
-        filter: blur(120px);
-        border-radius: 50%;
-        z-index: 0;
-    }
-    
-    [data-testid="stAppViewContainer"]::after {
-        content: "";
-        position: fixed;
-        bottom: -100px;
-        right: -100px;
-        width: 400px;
-        height: 400px;
-        background: rgba(236, 72, 153, 0.12);
-        filter: blur(120px);
-        border-radius: 50%;
-        z-index: 0;
-    }
-    
-    /* Header Container */
-    .hero-header {
-        background: linear-gradient(180deg, rgba(17, 24, 39, 0.7) 0%, rgba(3, 7, 18, 0.85) 100%);
-        backdrop-filter: blur(25px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 30px 20px;
-        border-radius: 24px;
+    /* Header Styling */
+    .main-header {
+        background: linear-gradient(135deg, #111420 0%, #1A1F35 100%);
+        padding: 30px;
+        border-radius: 20px;
+        border: 1px solid #2D3748;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.5);
         text-align: center;
-        margin-bottom: 25px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     }
     
-    .hero-title {
+    .main-title {
+        color: #FFFFFF;
         font-size: 2.8rem;
         font-weight: 800;
-        background: linear-gradient(90deg, #6366F1 0%, #EC4899 50%, #8B5CF6 100%);
+        margin: 0;
+        letter-spacing: -1px;
+        background: linear-gradient(90deg, #A5B4FC 0%, #FFFFFF 50%, #A5B4FC 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 6px;
-        letter-spacing: -1px;
     }
     
-    /* Glass Cards */
-    .glass-card {
-        background: rgba(17, 24, 39, 0.55);
-        backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 20px;
-        padding: 22px;
-        margin-bottom: 20px;
-        transition: all 0.3s ease;
-    }
-    
-    .glass-card:hover {
-        border-color: rgba(99, 102, 241, 0.35);
-        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.12);
+    .main-subtitle {
+        color: #94A3B8;
+        font-size: 1.1rem;
+        margin-top: 10px;
+        font-weight: 400;
     }
 
-    /* Tabs Customization */
+    /* Modern Badge */
+    .badge {
+        background: rgba(99, 102, 241, 0.1);
+        color: #A5B4FC;
+        padding: 5px 15px;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        display: inline-block;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    /* Tabs Styling */
     .stTabs [data-baseweb="tab-list"] {
-        background: rgba(17, 24, 39, 0.7);
-        padding: 6px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        gap: 8px;
+        gap: 15px;
+        background-color: #111420;
+        padding: 10px;
+        border-radius: 15px;
+        border: 1px solid #2D3748;
+        justify-content: center;
     }
 
     .stTabs [data-baseweb="tab"] {
-        border-radius: 12px;
-        color: #9CA3AF;
+        height: 50px;
+        background-color: transparent;
+        border-radius: 10px;
+        color: #94A3B8;
         font-weight: 600;
-        padding: 10px 18px;
+        font-size: 1rem;
         border: none;
+        padding: 0px 25px;
+        transition: all 0.3s ease;
+    }
+
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #FFFFFF;
+        background-color: rgba(255, 255, 255, 0.05);
     }
 
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%) !important;
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%) !important;
         color: #FFFFFF !important;
-        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
     }
 
-    /* Buttons Override */
+    /* Sidebar Custom Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #07090D;
+        border-right: 1px solid #2D3748;
+    }
+
+    /* Modern Cards & Containers */
+    .studio-card {
+        background-color: #111420;
+        padding: 25px;
+        border-radius: 15px;
+        border: 1px solid #2D3748;
+        margin-bottom: 20px;
+        color: #E2E8F0;
+    }
+    
+    .image-container {
+        background-color: #07090D;
+        padding: 10px;
+        border-radius: 15px;
+        border: 2px dashed #3A445E;
+        text-align: center;
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94A3B8;
+    }
+
+    /* Buttons Styling */
     .stButton>button {
-        background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+        width: 100%;
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
         color: white;
         border: none;
-        padding: 12px 22px;
+        padding: 12px 20px;
         font-weight: 700;
+        font-size: 1rem;
         border-radius: 12px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
     .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.45);
-    }
-
-    /* Custom Inputs */
-    .stTextArea textarea, .stTextInput input {
-        background: rgba(3, 7, 18, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        color: #F3F4F6 !important;
-        border-radius: 12px !important;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5);
     }
     
-    .stTextArea textarea:focus, .stTextInput input:focus {
-        border-color: #8B5CF6 !important;
-        box-shadow: 0 0 15px rgba(139, 92, 246, 0.3) !important;
+    /* Inputs Styling - Crucial for dark mode visibility */
+    .stTextInput input, .stTextArea textarea, .stSelectbox select {
+        background-color: #07090D !important;
+        border: 1px solid #3A445E !important;
+        color: #FFFFFF !important; /* White text inside inputs */
+        border-radius: 10px !important;
+        padding: 12px !important;
+    }
+    
+    .stTextInput input:focus, .stTextArea textarea:focus {
+        border-color: #6366F1 !important;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+    }
+    
+    /* Fixing Chat Input kalar rubutu */
+    [data-testid="stChatInput"] textarea {
+        color: #FFFFFF !important;
+        background-color: #111420 !important;
+        border: 1px solid #3A445E !important;
     }
 
-    /* Sidebar Styling */
-    section[data-testid="stSidebar"] {
-        background: #030712;
-        border-right: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    #MainMenu, footer, header {visibility: hidden;}
+    /* Hide Streamlit Branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
-# 3. State Management
+# 3. Session State Storage Initialization
 if "chats" not in st.session_state:
     st.session_state.chats = {}
 
@@ -165,278 +197,271 @@ if "current_chat_id" not in st.session_state:
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
-if "preset_prompt" not in st.session_state:
-    st.session_state.preset_prompt = "Futuristic neon cyber motorbike, high speed blur, Tokyo night background, 8k render"
-
-if "gallery" not in st.session_state:
-    st.session_state.gallery = []
-
 def start_new_chat():
     new_id = str(uuid.uuid4())
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
-# Safe API Call Handler with 503 Retry & 429 Protection
-def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retries=3):
-    """
-    Auto-retry with exponential backoff for 503 & 429 Gemini API calls.
-    """
-    for attempt in range(max_retries + 1):
-        try:
-            res = client.models.generate_content(
-                model=model,
-                contents=contents
-            )
-            return res.text, None
-        except Exception as e:
-            err_msg = str(e)
-            
-            # Handle 503 (Overloaded) and 429 (Rate Limit)
-            if any(code in err_msg for code in ["503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED"]):
-                if attempt < max_retries:
-                    # Exponential Backoff: Wait 4s, 8s, 16s...
-                    sleep_time = (attempt + 1) * 4
-                    st.toast(f"⏳ Cunkoso a server (503/429). ATOM zai sake gwada bayan dakika {sleep_time}...", icon="⏳")
-                    time.sleep(sleep_time)
-                    continue
-                
-                # If all retries failed
-                friendly_err = "⏳ Servers din Google suna fuskantar matsanancin cunkoso a halin yanzu. "
-                if "503" in err_msg:
-                    friendly_err += "Da fatan sake gwada bayan 'yan mintuna (503 Service Unavailable)."
-                else:
-                    friendly_err += "Ka tsallake iyakokin Free Tier. Da fatan sake gwada bayan dakika 60."
-                return None, friendly_err
-                
-            elif any(code in err_msg for code in ["401", "UNAUTHENTICATED"]):
-                return None, "🔑 Kuskuren API Key: Tabbatar an saka ingantaccen Gemini API Key a gefen hagu."
-            else:
-                return None, f"Kuskure: {err_msg}"
-
-# 4. Header UI
+# 4. Main Header Section
 st.markdown("""
-    <div class="hero-header">
-        <div style="color: #8B5CF6; font-size: 0.8rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 4px;">NEXT-GEN CREATIVE PLATFORM</div>
-        <div class="hero-title">⚡ ATOM Studio Ultra</div>
-        <div style="color: #9CA3AF; font-size: 0.95rem;">Dandalin Hira, Bincike, da Zana Hotuna na AI</div>
+    <div class="main-header">
+        <div class="badge">ATOM NEXT-GEN WORKSPACE</div>
+        <div class="main-title">🤖 ATOM AI Pro</div>
+        <div class="main-subtitle">Ingantaccen tsarin AI na zamani domin hira, takardu, bincikar hotuna, da zane-zane na kwararru.</div>
     </div>
 """, unsafe_allow_html=True)
 
-# 5. Sidebar Navigation & Key Input
+# 5. Sidebar Configuration & Chat History
 with st.sidebar:
-    st.markdown("<h3 style='color: white;'>⚙️ Control Center</h3>", unsafe_allow_html=True)
-    api_key = st.text_input("🔑 Gemini API Key:", type="password", help="Saka API key dinka a nan")
+    st.markdown("<h2 style='text-align: center; color: white;'>⚙️ Saituna</h2>", unsafe_allow_html=True)
+    api_key = st.text_input("🔑 Saka Gemini API Key:", type="password", help="Sami API key daga Google AI Studio")
     st.markdown("---")
     
-    if st.button("➕ New Workspace Session", use_container_width=True):
+    if st.button("➕ Sabuwar Hira (New Chat)", use_container_width=True):
         start_new_chat()
         st.rerun()
 
-    st.markdown("<h4 style='color: #9CA3AF; margin-top: 15px;'>💬 Saved Chats</h4>", unsafe_allow_html=True)
-    for cid in reversed(list(st.session_state.chats.keys())):
+    st.markdown("<h3 style='color: #94A3B8;'>💬 Saved Topics</h3>", unsafe_allow_html=True)
+    
+    chat_ids = list(st.session_state.chats.keys())
+    for cid in reversed(chat_ids):
         chat_data = st.session_state.chats[cid]
-        label = f"💬 {chat_data['title']}" if cid == st.session_state.current_chat_id else f"📁 {chat_data['title']}"
-        if st.button(label, key=f"sidebar_btn_{cid}", use_container_width=True):
+        title = chat_data["title"]
+        
+        if cid == st.session_state.current_chat_id:
+            button_label = f"💬  {title}"
+        else:
+            button_label = f"📁 {title}"
+            
+        if st.button(button_label, key=f"btn_{cid}", use_container_width=True):
             st.session_state.current_chat_id = cid
             st.rerun()
 
-# 6. Main Core Engine
+# 6. Main Application Logic
 if api_key:
+    # Ensuring API Key has api_key parameter explicitly for the 401 error fix
     clean_api_key = api_key.strip()
     client = genai.Client(api_key=clean_api_key)
+    
+    system_prompt = """
+    Sunanka ATOM Pro. Kai gwanin AI ne mai matukar basira da iyawa.
+    Amsoshinka su kasance na kwararru, a tsara, masu kyawun fasali da girmamawa cikin harshen Hausa ko Turanci.
+    """
+
     current_id = st.session_state.current_chat_id
     current_messages = st.session_state.chats[current_id]["messages"]
 
-    tab1, tab2, tab3, tab4 = st.tabs(["💬 Assistant", "🔍 Vision Lab", "🎨 Image Studio Ultra", "🖼️ Gallery"])
+    tab1, tab2, tab3 = st.tabs(["💬 Hira & Takardu", "🖼️ Bincikar Hoto", "🎨 ATOM Image Studio Pro"])
 
-    # ---------------- TAB 1: CHAT ASSISTANT ----------------
+    # ---------------- TAB 1: CHAT & DOCUMENTS ----------------
     with tab1:
         col1, col2 = st.columns([1, 2], gap="large")
+        
         with col1:
-            st.markdown("<div class='glass-card'><h5>📄 Loda Fayil (Document Reader)</h5>", unsafe_allow_html=True)
-            uploaded_doc = st.file_uploader("Sanya PDF, DOCX, ko TXT", type=["pdf", "docx", "txt"])
+            st.markdown("<div class='studio-card'><h5>📄 Loda Takarda<h5>", unsafe_allow_html=True)
+            uploaded_doc = st.file_uploader("Saka Fayil (PDF, DOCX, TXT):", type=["pdf", "docx", "txt"])
             st.markdown("</div>", unsafe_allow_html=True)
             doc_text = ""
+            
             if uploaded_doc:
-                try:
-                    if uploaded_doc.type == "application/pdf":
-                        reader = PyPDF2.PdfReader(uploaded_doc)
-                        for page in reader.pages:
-                            doc_text += page.extract_text() or ""
-                    elif uploaded_doc.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-                        doc = docx.Document(uploaded_doc)
-                        for para in doc.paragraphs:
-                            doc_text += para.text + "\n"
-                    elif uploaded_doc.type == "text/plain":
-                        doc_text = str(uploaded_doc.read(), "utf-8")
-                    st.success("✅ An sarrafa takarda fayil din!")
-                except Exception as e:
-                    st.error(f"Kuskure wajen karanta fayil: {e}")
+                if uploaded_doc.type == "application/pdf":
+                    reader = PyPDF2.PdfReader(uploaded_doc)
+                    for page in reader.pages:
+                        doc_text += page.extract_text() or ""
+                elif uploaded_doc.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                    doc = docx.Document(uploaded_doc)
+                    for para in doc.paragraphs:
+                        doc_text += para.text + "\n"
+                elif uploaded_doc.type == "text/plain":
+                    doc_text = str(uploaded_doc.read(), "utf-8")
+                    
+                st.success("✅ An karanta takardar!")
 
         with col2:
+            st.markdown("##### 💬 Dandalin Hira")
+            
             for msg in current_messages:
                 with st.chat_message(msg["role"]):
                     st.markdown(msg["content"])
 
-            if user_input := st.chat_input("Rubuta tambayarka ko umarni..."):
+            if user_input := st.chat_input("Rubuta sakonka a nan..."):
                 current_messages.append({"role": "user", "content": user_input})
                 with st.chat_message("user"):
                     st.markdown(user_input)
 
                 if len(current_messages) == 1:
-                    st.session_state.chats[current_id]["title"] = user_input[:20] + "..."
+                    topic_title = user_input[:25] + "..." if len(user_input) > 25 else user_input
+                    st.session_state.chats[current_id]["title"] = topic_title
 
                 full_prompt = user_input
                 if doc_text:
-                    full_prompt = f"Context from Document:\n{doc_text[:4000]}\n\nUser Question: {user_input}"
+                    full_prompt = f"Bisa labarin/bayanin da ke cikin wannan takardar:\n\n{doc_text[:4000]}\n\nAmsa wannan tambayar: {user_input}"
 
                 with st.chat_message("assistant"):
-                    with st.spinner("ATOM yana aiki..."):
-                        response_text, error = safe_generate_content(client, full_prompt)
-                        if response_text:
-                            st.markdown(response_text)
-                            current_messages.append({"role": "assistant", "content": response_text})
+                    with st.spinner("ATOM Pro yana tunani..."):
+                        try:
+                            # Fixed model to gemini-3.6-flash to avoid 404 error
+                            response = client.models.generate_content(
+                                model='gemini-3.6-flash',
+                                contents=full_prompt,
+                                config=types.GenerateContentConfig(
+                                    system_instruction=system_prompt,
+                                ),
+                            )
+                            st.markdown(response.text)
+                            current_messages.append({"role": "assistant", "content": response.text})
                             st.rerun()
-                        else:
-                            st.warning(error)
+                        except Exception as e:
+                            # Fallback error handling with a visible warning box
+                            st.warning(f"Kuskure ya faru: {e}. Da fatan duba idan API Key dinka mai aiki ne ko ka sake gwadawa.")
 
-    # ---------------- TAB 2: VISION LAB ----------------
+    # ---------------- TAB 2: IMAGE VISION ----------------
     with tab2:
-        col_v1, col_v2 = st.columns([1, 1], gap="large")
-        with col_v1:
-            st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
-            uploaded_image = st.file_uploader("Loda Hoto don Bincike:", type=["jpg", "jpeg", "png"])
+        st.markdown("### 🖼️ Bincikar Hoto (Vision)")
+        
+        col_img1, col_img2 = st.columns([1, 1], gap="large")
+        
+        with col_img1:
+            st.markdown("<div class='studio-card'>", unsafe_allow_html=True)
+            uploaded_image = st.file_uploader("Loda hoto...", type=["jpg", "jpeg", "png"], key="vision_uploader")
             if uploaded_image:
                 img = Image.open(uploaded_image)
-                st.image(img, use_container_width=True)
+                st.image(img, caption="Hoton da ka loda", use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
-        with col_v2:
-            image_prompt = st.text_area("Tambayar Binciken Hoton:", "Bani cikakken bayanin abubuwan da ke cikin wannan hoton.")
+        with col_img2:
+            image_prompt = st.text_area("Tambayarka game da hoton:", "Yi mini bayani daki-daki game da wannan hoton da Hausa.")
+            
             if uploaded_image and st.button("🔍 Fara Binciken Hoto"):
-                with st.spinner("Yana amfani da Vision AI..."):
-                    response_text, error = safe_generate_content(client, [img, image_prompt])
-                    if response_text:
-                        st.info(response_text)
-                    else:
-                        st.warning(error)
+                with st.spinner("ATOM Pro yana nazarin hoton..."):
+                    try:
+                        # fixed model to gemini-3.6-flash
+                        response = client.models.generate_content(
+                            model='gemini-3.6-flash',
+                            contents=[img, image_prompt],
+                        )
+                        st.markdown("### 🤖 Sakamakon ATOM Pro:")
+                        st.info(response.text)
+                    except Exception as e:
+                        st.warning(f"Kuskure: {e}")
 
-    # ---------------- TAB 3: IMAGE STUDIO ULTRA ----------------
+    # ---------------- TAB 3: MODERN IMAGE GENERATION STUDIO PRO ----------------
     with tab3:
-        st.markdown("<h3 style='color: white; text-align: center; margin-bottom: 15px;'>🎨 Image Generation Engine</h3>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; color: white; margin-bottom: 5px;'>🎨 ATOM Image Studio Pro</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #94A3B8; margin-bottom: 30px;'>Zana hotuna masu inganci (HD) ta amfani da fasahar AI ta zamani.</p>", unsafe_allow_html=True)
         
-        # Presets Buttons
-        st.markdown("<div style='margin-bottom: 8px; color: #9CA3AF; font-size: 0.85rem;'>💡 Saurin Gwada Prompt:</div>", unsafe_allow_html=True)
-        p_col1, p_col2, p_col3 = st.columns(3)
-        with p_col1:
-            if st.button("🏍️ Cyberpunk Bike"):
-                st.session_state.preset_prompt = "Futuristic neon cyber motorbike, high speed blur, Tokyo night background, 8k render"
-        with p_col2:
-            if st.button("🚘 Land Cruiser Prado"):
-                st.session_state.preset_prompt = "Toyota Land Cruiser Prado 2024, driving on Sahara desert dunes, golden hour sunset, hyperrealistic"
-        with p_col3:
-            if st.button("🦅 Mechanical Eagle"):
-                st.session_state.preset_prompt = "Robotic mechanical eagle with glowing red eyes, metallic feathers, cinematic lighting, 8k"
-
-        col_st1, col_st2 = st.columns([1, 1.2], gap="large")
-
-        with col_st1:
-            st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
-            gen_prompt = st.text_area("Bayanin Hoto (Prompt):", value=st.session_state.preset_prompt, height=120)
-            
-            # Magic Enhance Prompt Button
-            if st.button("🪄 Magic Enhance Prompt"):
-                with st.spinner("Gemini yana gyara prompt din..."):
-                    enhanced_text, error = safe_generate_content(
-                        client, 
-                        f"Expand this image prompt into a highly detailed cinematic visual prompt: '{gen_prompt}'"
-                    )
-                    if enhanced_text:
-                        st.session_state.preset_prompt = enhanced_text.strip()
-                        st.rerun()
-                    else:
-                        st.warning(error)
-
-            style = st.selectbox("🎨 Salon Hoto (Art Style):", ["Photorealistic (Na Gaske)", "3D Render (Octane)", "Anime Art", "Cyberpunk Neon", "Cinematic Dark"])
-            ratio = st.radio("📐 Formats (Aspect Ratio):", ["1:1 (Square)", "16:9 (Landscape)", "9:16 (Portrait)"], horizontal=True)
-            
-            generate_btn = st.button("🚀 Zana Hoton Yanzu", use_container_width=True)
+        col_studio1, col_studio2 = st.columns([1, 2], gap="large")
+        
+        # Left Panel: Controls
+        with col_studio1:
+            st.markdown("<div class='studio-card'>", unsafe_allow_html=True)
+            st.markdown("<h5 style='color: white; margin-top: 0;'>📝 1. Bayyana Hotonko</h5>", unsafe_allow_html=True)
+            gen_prompt = st.text_area(
+                "Prompt (Zaka iya rubutawa da Hausa):", 
+                "Toyota Land Cruiser Prado 2024 driving through sand dunes in Sahara desert, sunset background, highly detailed, 8k resolution, photorealistic",
+                height=150,
+                placeholder="Rubuta abin da kake son gani..."
+            )
             st.markdown("</div>", unsafe_allow_html=True)
 
-        with col_st2:
-            st.markdown("<div class='glass-card' style='text-align: center;'>", unsafe_allow_html=True)
+            st.markdown("<div class='studio-card'>", unsafe_allow_html=True)
+            st.markdown("<h5 style='color: white; margin-top: 0;'>⚙️ 2. Saituna & Salo</h5>", unsafe_allow_html=True)
+            
+            style_option = st.selectbox(
+                "🎨 Salo (Style):",
+                ["Photorealistic (Kamar Na Gaske)", "Anime / Cartoon", "3D Digital Art", "Cinematic Movie", "Cyberpunk / Futuristic"]
+            )
+            
+            aspect_ratio = st.radio(
+                "📐 Girman Hoto (Aspect Ratio):",
+                ["Square (1:1)", "Portrait (9:16)", "Landscape (16:9)"],
+                horizontal=True
+            )
+            st.markdown("</div>", unsafe_allow_html=True)
+
+            # Generate Button
+            generate_btn = st.button("✨ Zana Hoton (Generate HD)")
+
+        # Right Panel: Display
+        with col_studio2:
+            st.markdown("<h5 style='color: white; margin-bottom: 10px;'>🖼️ Sakamakon Zane</h5>", unsafe_allow_html=True)
             image_placeholder = st.empty()
-            image_placeholder.markdown("""
-                <div style="padding: 70px 20px; color: #4B5563;">
-                    <div style="font-size: 3rem; margin-bottom: 8px;">✨</div>
-                    Sakamakon zane zai bayyana a nan.
-                </div>
-            """, unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Default placeholder state with dark mode visible text
+            with image_placeholder.container():
+                st.markdown("""
+                    <div class="image-container">
+                        <div style="text-align: center;">
+                            <div style="font-size: 4rem; margin-bottom: 20px;">🎨</div>
+                            <span style="color: #94A3B8;">Hotonka zai fito a nan...<br>Cika bayani a gefen hagu sannan ka danna 'Zana Hoton'.</span>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
 
+        # Dimension Mapping
+        dimensions = {"Square (1:1)": (1024, 1024), "Portrait (9:16)": (720, 1280), "Landscape (16:9)": (1280, 720)}
+        width, height = dimensions[aspect_ratio]
+
+        # Execution Logic
         if generate_btn:
-            with st.spinner("⚡ Generation Engine yana aiki..."):
-                trans_text, error = safe_generate_content(
-                    client, 
-                    f"Translate this prompt to precise English image generation prompt: '{gen_prompt}'"
-                )
+            with st.spinner("🚀 ATOM Pro yana canza bayaninka zuwa zane..."):
                 
-                if not trans_text:
-                    st.warning(error)
-                    eng_prompt = gen_prompt # Fallback
-                else:
-                    eng_prompt = trans_text.strip()
-
-                dim_map = {"1:1 (Square)": (1024, 1024), "16:9 (Landscape)": (1280, 720), "9:16 (Portrait)": (720, 1280)}
-                w, h = dim_map[ratio]
-
+                # Translation is needed for Pollinations to work perfectly
+                try:
+                    translation_res = client.models.generate_content(
+                        model='gemini-3.6-flash',
+                        contents=f"Translate this Hausa prompt to English for image generation, focusing on visual details: '{gen_prompt}'. Only return the translated English text."
+                    )
+                    english_prompt = translation_res.text.strip()
+                except Exception:
+                    english_prompt = gen_prompt # Fallback
+                
+                # Dynamic Style Modifiers
                 style_modifiers = {
-                    "Photorealistic (Na Gaske)": "photorealistic 8k, ultra-detailed, highly realistic lighting, masterpiece",
-                    "3D Render (Octane)": "3d octane render, cinema 4d, smooth shading, vibrant colors",
-                    "Anime Art": "vibrant anime style, clean lines, aesthetic colors, studio ghibli inspired",
-                    "Cyberpunk Neon": "cyberpunk style, vibrant neon lights, futuristic cityscape, dramatic atmosphere",
-                    "Cinematic Dark": "cinematic dramatic dark lighting, movie shot, highly detailed composition"
+                    "Photorealistic (Kamar Na Gaske)": "photorealistic, 8k resolution, ultra detailed, realistic lighting, sharp focus",
+                    "Anime / Cartoon": "vibrant anime style, detailed digital illustration, aesthetic colors",
+                    "3D Digital Art": "octane render, highly detailed 3d model, smooth lighting, trendy art",
+                    "Cinematic Movie": "cinematic dramatic lighting, movie shot scene, masterpiece, highly texture",
+                    "Cyberpunk / Futuristic": "cyberpunk style, neon lights, futuristic cityscape background, highly detailed"
                 }
+                
+                # Auto-enhance prompt for Pollinations
+                final_prompt = f"{english_prompt}, {style_modifiers[style_option]}"
+                
+                # Update placeholder to showing loading state
+                image_placeholder.markdown("""
+                    <div class="image-container">
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 20px;">🚀</div>
+                            <span style="color: #A5B4FC;">Injin AI yana hada hoton...<br>Da fatan a jira dakika kadan.</span>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
 
-                final_query = f"{eng_prompt}, {style_modifiers[style]}"
-                seed = random.randint(1, 999999)
-                encoded = urllib.parse.quote(final_query)
-                image_url = f"https://image.pollinations.ai/prompt/{encoded}?width={w}&height={h}&seed={seed}&model=flux-realism&nologo=true"
-
-                # Save to Gallery
-                st.session_state.gallery.insert(0, {
-                    "url": image_url,
-                    "prompt": gen_prompt,
-                    "style": style
-                })
-
-                image_placeholder.empty()
-                with image_placeholder.container():
-                    st.image(image_url, caption=f"Sakamako: {gen_prompt}", use_container_width=True)
-                    st.markdown(f"🔗 [Download Direct Image HD]({image_url})")
-                    st.success("✅ An sarrafa sannan an adana a Gallery!")
-
-    # ---------------- TAB 4: GALLERY ----------------
-    with tab4:
-        st.markdown("<h3 style='color: white; text-align: center; margin-bottom: 20px;'>🖼️ Taskar Hotuna (Gallery)</h3>", unsafe_allow_html=True)
-        
-        if len(st.session_state.gallery) == 0:
-            st.info("Babu hoton da aka adana a yanzu. Je zuwa Tab 3 domin ƙirƙirar sabon hoto!")
-        else:
-            if st.button("🗑️ Clear All Gallery Images"):
-                st.session_state.gallery = []
-                st.rerun()
-
-            g_cols = st.columns(3)
-            for idx, item in enumerate(st.session_state.gallery):
-                col_idx = idx % 3
-                with g_cols[col_idx]:
-                    st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
-                    st.image(item["url"], use_container_width=True)
-                    st.caption(f"**Prompt:** {item['prompt']}")
-                    st.caption(f"**Style:** {item['style']}")
-                    st.markdown(f"⬇️ [Download HD]({item['url']})")
-                    st.markdown("</div>", unsafe_allow_html=True)
+                # Use direct rendering engine for reliability and clarity
+                # Added random seed to ensure new images on generate button click
+                random_seed = random.randint(1000, 999999)
+                encoded_prompt = urllib.parse.quote(final_prompt)
+                
+                # Modern Flux Realism Model URL for Pollinations (High Quality)
+                direct_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&seed={random_seed}&model=flux-realism&nologo=true"
+                
+                try:
+                    # Clear loading and show image inside a visible studio card
+                    image_placeholder.empty()
+                    with image_placeholder.container():
+                        st.markdown("<div class='studio-card'>", unsafe_allow_html=True)
+                        st.image(direct_url, caption=f"Sakamako: {gen_prompt}", use_container_width=True)
+                        st.success("✅ An gama zana hoton cikin nasara!")
+                        st.markdown("</div>", unsafe_allow_html=True)
+                        
+                except Exception as e:
+                    st.warning(f"Kuskure wajen nuna hoto: {e}")
 
 else:
-    st.warning("⚠️ Saka Gemini API Key dinka a Control Center (gefen hagu) domin kunna dandalin.")
+    # Error box with visible white text
+    st.markdown("""
+        <div style="background-color: #7C3AED; color: white; padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; margin-bottom: 20px;">
+            ⚠️ Da fatan za ka saka Gemini API Key ɗinka a gefen hagu (Sidebar) domin kunna ATOM AI Pro.
+        </div>
+    """, unsafe_allow_html=True)
