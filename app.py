@@ -269,26 +269,30 @@ if api_key:
                     except Exception as e:
                         st.error(f"Kuskure ya faru: {e}")
 
-    # ---------------- TAB 3: MODERN IMAGE GENERATION STUDIO ----------------
+    # ---------------- TAB 3: HIGH-PRECISION IMAGE GENERATION STUDIO ----------------
     with tab3:
-        st.markdown("### 🎨 ATOM Image Generation Studio")
-        st.caption("Gidan zana hoto na zamani da ke amfani da fasaha mai zurfi (Advanced AI Art Generation).")
+        st.markdown("### 🎨 ATOM Image Generation Studio (Ultra HD)")
+        st.caption("Gidan zana hoto na zamani mai inganci da fassarar kalmomi ta atomatik.")
         
         col_ctrl1, col_ctrl2 = st.columns([2, 1], gap="large")
         
         with col_ctrl1:
             gen_prompt = st.text_area(
-                "📝 Bayyana Hoton da Kake Buƙata (Prompt):", 
-                "Toyota Land Cruiser Prado 2024 driving in desert dunes",
-                height=120,
-                help="Yi amfani da Turanci don samun sakamako mafi kyau."
+                "📝 Bayyana Hoton da Kake Buƙata (Za ka iya rubutawa da Hausa ko Turanci):", 
+                "Hoton sabuwar mota jar Toyota Land Cruiser Prado 2024 a cikin hamada",
+                height=120
             )
         
         with col_ctrl2:
             st.markdown("##### ⚙️ Saitunan Hoto")
+            engine_choice = st.selectbox(
+                "🤖 Injin Zana Hoto (Engine):",
+                ["Flux Realism (Mafi Inginci)", "Stable Diffusion XL", "Turbo Speed"]
+            )
+            
             style_option = st.selectbox(
                 "🎨 Salo (Style):",
-                ["Photorealistic (Kamar Na Gaske)", "Anime / Cartoon", "3D Digital Art", "Cinematic Movie", "Cyberpunk / Futuristic"]
+                ["Photorealistic (Kamar Na Gaske)", "Anime / Cartoon", "3D Digital Art", "Cinematic Movie"]
             )
             
             aspect_ratio = st.selectbox(
@@ -296,60 +300,56 @@ if api_key:
                 ["Square (1:1)", "Portrait (9:16)", "Landscape (16:9)"]
             )
 
-        # Map Dimensions
-        dimensions = {"Square (1:1)": (1024, 1024), "Portrait (9:16)": (720, 1280), "Landscape (16:9)": (1280, 720)}
+        # Map Dimensions & Models
+        dimensions = {"Square (1:1)": (1024, 1024), "Portrait (9:16)": (768, 1344), "Landscape (16:9)": (1344, 768)}
         width, height = dimensions[aspect_ratio]
+        
+        engine_models = {
+            "Flux Realism (Mafi Inginci)": "flux",
+            "Stable Diffusion XL": "turbo",
+            "Turbo Speed": "flux-realism"
+        }
 
         st.markdown("---")
         if st.button("✨ Zana Hoton Yanzu (Generate HD Image)", use_container_width=True):
-            with st.spinner("🚀 ATOM yana harhada hotonka a dakin gwaji..."):
+            with st.spinner("🚀 ATOM yana fassara rubutunka zuwa Turanci sannan yana zana hotonka..."):
                 
-                # Dynamic Style Modifiers
+                # Step 1: Auto-translate prompt to English using Gemini to guarantee precision
+                translated_prompt = gen_prompt
+                try:
+                    trans_response = client.models.generate_content(
+                        model='gemini-3.6-flash',
+                        contents=f"Translate this image prompt into a detailed precise English prompt for AI image generators. Output ONLY the translated prompt text, nothing else: '{gen_prompt}'"
+                    )
+                    if trans_response.text:
+                        translated_prompt = trans_response.text.strip()
+                except Exception:
+                    pass
+
+                # Step 2: Add quality modifiers
                 style_modifiers = {
-                    "Photorealistic (Kamar Na Gaske)": "photorealistic, 8k resolution, ultra detailed, sharp focus, masterpiece",
-                    "Anime / Cartoon": "vibrant anime style, detailed digital illustration, studio ghibli aesthetic",
-                    "3D Digital Art": "octane render, 3d concept art, smooth lighting, highly detailed 3d model",
-                    "Cinematic Movie": "cinematic lighting, 35mm photograph, dramatic atmosphere, movie scene, depth of field",
-                    "Cyberpunk / Futuristic": "cyberpunk style, neon lights, futuristic city aesthetic, highly detailed"
+                    "Photorealistic (Kamar Na Gaske)": "photorealistic, 8k resolution, ultra-detailed, highly crisp quality, professional photography, studio lighting",
+                    "Anime / Cartoon": "vibrant anime style, clean lines, detailed digital art, studio quality",
+                    "3D Digital Art": "3d render, octane render, vivid colors, smooth surfaces, highly detailed 3d model",
+                    "Cinematic Movie": "cinematic shot, 35mm photograph, dramatic lighting, depth of field, sharp focus"
                 }
                 
-                # Enhance Prompt accurately
-                final_prompt = f"{gen_prompt}, {style_modifiers[style_option]}"
-                success = False
+                final_prompt = f"{translated_prompt}, {style_modifiers[style_option]}"
                 
-                # 1. Primary Attempt: Google Imagen 3
+                # Step 3: Render Image
                 try:
-                    result = client.models.generate_images(
-                        model='imagen-3.0-generate-002',
-                        prompt=final_prompt,
-                        config=types.GenerateImagesConfig(
-                            number_of_images=1,
-                            output_mime_type="image/jpeg",
-                            aspect_ratio="1:1"
-                        )
-                    )
+                    random_seed = random.randint(10000, 999999)
+                    encoded_prompt = urllib.parse.quote(final_prompt)
+                    selected_model = engine_models[engine_choice]
                     
-                    for generated_image in result.generated_images:
-                        image = Image.open(io.BytesIO(generated_image.image.image_bytes))
-                        st.image(image, caption=f"Sakamako (Google Imagen 3): {gen_prompt}", use_container_width=True)
-                        st.success("✅ An zana hoton ta hanyar Google Imagen Engine!")
-                        success = True
-                except Exception:
-                    st.info("ℹ️ Engine ɗin Google yana cunkoso. Muna amfani da Direct Precise Engine...")
-
-                # 2. Precise Fallback Render Engine (Guarantees exact subject)
-                if not success:
-                    try:
-                        random_seed = random.randint(1, 999999)
-                        encoded_prompt = urllib.parse.quote(final_prompt)
-                        
-                        # High Definition Direct API stream
-                        direct_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&seed={random_seed}&nologo=true"
-                        
-                        st.image(direct_url, caption=f"Sakamako: {gen_prompt} | Salo: {style_option}", use_container_width=True)
-                        st.success("✅ An zana hoton cikin nasara da ingancin HD!")
-                    except Exception as fallback_error:
-                        st.error(f"Kuskure wajen zana hoto: {fallback_error}")
+                    # High quality direct render URL stream
+                    image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&seed={random_seed}&model={selected_model}&nologo=true"
+                    
+                    st.image(image_url, caption=f"Sakamako: {gen_prompt} | Inji: {engine_choice}", use_container_width=True)
+                    st.info(f"🔤 **An fassara rubutunka zuwa:** {translated_prompt}")
+                    st.success("✅ An gama zana hoton cikin ingancin HD!")
+                except Exception as err:
+                    st.error(f"Kuskure wajen zana hoto: {err}")
 
 else:
     st.warning("⚠️ Da fatan za ka saka Gemini API Key ɗinka a gefen hagu (Sidebar) domin Fara amfani da ATOM AI.")
