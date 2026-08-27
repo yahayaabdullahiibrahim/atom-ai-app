@@ -6,6 +6,7 @@ import PyPDF2
 import docx
 import io
 import urllib.parse
+import requests
 
 st.set_page_config(page_title="Atom AI - Pro", page_icon="🤖", layout="wide")
 
@@ -108,8 +109,10 @@ if api_key:
         
         if st.button("✨ Zana Hoton Yanzu"):
             with st.spinner("Atom yana ƙirƙirar hotonka..."):
+                success = False
+                
+                # Gwaji na 1: Google Imagen 3
                 try:
-                    # Kokarin farko: Amfani da Google Imagen 3
                     result = client.models.generate_images(
                         model='imagen-3.0-generate-002',
                         prompt=gen_prompt,
@@ -122,16 +125,25 @@ if api_key:
                     
                     for generated_image in result.generated_images:
                         image = Image.open(io.BytesIO(generated_image.image.image_bytes))
-                        st.image(image, caption=f"Sakamako (Google Imagen): {gen_prompt}", use_container_width=True)
+                        st.image(image, caption=f"Sakamako (Google Imagen): {gen_prompt}")
                         st.success("✅ An ƙirƙiri hoton cikin nasara ta Google Imagen!")
+                        success = True
                 except Exception as e:
-                    # Idan Google Imagen yana da cunkoso (503), za mu sarrafa shi ta Fast Image API Engine
-                    st.warning("⚠️ Google Imagen yana fuskantar cunkoso (503). Muna komawa kan tsarin madadin zana hoto...")
+                    st.warning("⚠️ Google Imagen 3 yana samun cunkoso a yanzu (503). Muna komawa kan tsarin Fast AI Engine...")
+
+                # Gwaji na 2: Fast Engine Fallback (Idan Imagen ya fadi)
+                if not success:
                     try:
                         encoded_prompt = urllib.parse.quote(gen_prompt)
                         fallback_url = f"https://pollinations.ai/p/{encoded_prompt}?width=1024&height=1024&seed=42&model=flux"
-                        st.image(fallback_url, caption=f"Sakamako (Fast AI Engine): {gen_prompt}", use_container_width=True)
-                        st.success("✅ An ƙirƙiri hoton cikin nasara ta Fast AI Engine!")
+                        
+                        response = requests.get(fallback_url)
+                        if response.status_code == 200:
+                            image = Image.open(io.BytesIO(response.content))
+                            st.image(image, caption=f"Sakamako (Fast AI Engine): {gen_prompt}")
+                            st.success("✅ An ƙirƙiri hoton cikin nasara ta Fast AI Engine!")
+                        else:
+                            st.error("❌ An samu matsala wajen haɗuwa da uwar garken zana hotuna.")
                     except Exception as fallback_error:
                         st.error(f"Kuskure ya faru wajen ƙirƙirar hoto: {fallback_error}")
 
