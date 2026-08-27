@@ -140,6 +140,10 @@ if "current_chat_id" not in st.session_state:
 if "preset_prompt" not in st.session_state:
     st.session_state.preset_prompt = "Toyota Land Cruiser Prado 2024, futuristic dark background, neon headlights, 8k render"
 
+# Gallery State Initialization
+if "gallery" not in st.session_state:
+    st.session_state.gallery = []
+
 def start_new_chat():
     new_id = str(uuid.uuid4())
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
@@ -178,7 +182,7 @@ if api_key:
     current_id = st.session_state.current_chat_id
     current_messages = st.session_state.chats[current_id]["messages"]
 
-    tab1, tab2, tab3 = st.tabs(["💬 Assistant", "🔍 Vision Lab", "🎨 Image Studio Ultra"])
+    tab1, tab2, tab3, tab4 = st.tabs(["💬 Assistant", "🔍 Vision Lab", "🎨 Image Studio Ultra", "🖼️ Gallery"])
 
     # ---------------- TAB 1: CHAT ----------------
     with tab1:
@@ -325,10 +329,41 @@ if api_key:
                 encoded = urllib.parse.quote(final_query)
                 image_url = f"https://image.pollinations.ai/prompt/{encoded}?width={w}&height={h}&seed={seed}&model=flux-realism&nologo=true"
 
+                # Save to Gallery Session State
+                st.session_state.gallery.insert(0, {
+                    "url": image_url,
+                    "prompt": gen_prompt,
+                    "style": style
+                })
+
                 image_placeholder.empty()
                 with image_placeholder.container():
                     st.image(image_url, caption=f"Sakamako: {gen_prompt}", use_container_width=True)
-                    st.success("✅ An kammala cikin nasara!")
+                    st.markdown(f"[⬇️ Sauke Hoton Direct (Download Link)]({image_url})")
+                    st.success("✅ An kammala sannan an adana shi a Gallery!")
+
+    # ---------------- TAB 4: GALLERY ----------------
+    with tab4:
+        st.markdown("<h3 style='color: white; text-align: center; margin-bottom: 20px;'>🖼️ Taskar Hotunan da Ka Zana (Gallery)</h3>", unsafe_allow_html=True)
+        
+        if len(st.session_state.gallery) == 0:
+            st.info("Babu wani hoto a taskarka a yanzu. Je zuwa Tab 3 domin zana sabon hoto!")
+        else:
+            if st.button("🗑️ Goge Dukkan Hotuna (Clear Gallery)"):
+                st.session_state.gallery = []
+                st.rerun()
+
+            # Display Gallery in Grid Format (3 Columns)
+            g_cols = st.columns(3)
+            for idx, item in enumerate(st.session_state.gallery):
+                col_idx = idx % 3
+                with g_cols[col_idx]:
+                    st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+                    st.image(item["url"], use_container_width=True)
+                    st.caption(f"**Prompt:** {item['prompt']}")
+                    st.caption(f"**Style:** {item['style']}")
+                    st.markdown(f"[⬇️ Download HD]({item['url']})")
+                    st.markdown("</div>", unsafe_allow_html=True)
 
 else:
     st.warning("⚠️ Saka Gemini API Key dinka a gefen hagu domin fara amfani.")
