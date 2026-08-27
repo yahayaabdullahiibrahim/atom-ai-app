@@ -7,6 +7,7 @@ import docx
 import urllib.parse
 import uuid
 import random
+import time
 
 # 1. Page Configuration
 st.set_page_config(
@@ -175,6 +176,30 @@ def start_new_chat():
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
+# Safe API Call Handler with Rate Limit Protection
+def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retries=2):
+    """
+    Auto-retry & robust error handler for Gemini API calls.
+    """
+    for attempt in range(max_retries + 1):
+        try:
+            res = client.models.generate_content(
+                model=model,
+                contents=contents
+            )
+            return res.text, None
+        except Exception as e:
+            err_msg = str(e)
+            if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+                if attempt < max_retries:
+                    time.sleep(4)  # Wait 4 seconds before retry
+                    continue
+                return None, "⏳ Ka tsallake iyakokin amfani kyauta (Rate Limit). Da fatan ka jira dakika 30-60 sannan ka sake gwada, ko ka canza API Key."
+            elif "401" in err_msg or "UNAUTHENTICATED" in err_msg:
+                return None, "🔑 Kuskuren API Key: Tabbatar an saka ingantaccen Gemini API Key a gefen hagu."
+            else:
+                return None, f"Kuskure: {err_msg}"
+
 # 4. Header UI
 st.markdown("""
     <div class="hero-header">
@@ -204,7 +229,9 @@ with st.sidebar:
 
 # 6. Main Core Engine
 if api_key:
-    client = genai.Client(api_key=api_key.strip())
+    # Explicitly pass api_key parameter to eliminate 401 Authentication issues
+    clean_api_key = api_key.strip()
+    client = genai.Client(api_key=clean_api_key)
     current_id = st.session_state.current_chat_id
     current_messages = st.session_state.chats[current_id]["messages"]
 
@@ -253,16 +280,13 @@ if api_key:
 
                 with st.chat_message("assistant"):
                     with st.spinner("ATOM yana aiki..."):
-                        try:
-                            res = client.models.generate_content(
-                                model='gemini-3.6-flash',
-                                contents=full_prompt
-                            )
-                            st.markdown(res.text)
-                            current_messages.append({"role": "assistant", "content": res.text})
+                        response_text, error = safe_generate_content(client, full_prompt)
+                        if response_text:
+                            st.markdown(response_text)
+                            current_messages.append({"role": "assistant", "content": response_text})
                             st.rerun()
-                        except Exception as e:
-                            st.error(f"Kuskure: {e}")
+                        else:
+                            st.warning(error)
 
     # ---------------- TAB 2: VISION LAB ----------------
     with tab2:
@@ -279,14 +303,11 @@ if api_key:
             image_prompt = st.text_area("Tambayar Binciken Hoton:", "Bani cikakken bayanin abubuwan da ke cikin wannan hoton.")
             if uploaded_image and st.button("🔍 Fara Binciken Hoto"):
                 with st.spinner("Yana amfani da Vision AI..."):
-                    try:
-                        res = client.models.generate_content(
-                            model='gemini-3.6-flash',
-                            contents=[img, image_prompt]
-                        )
-                        st.info(res.text)
-                    except Exception as e:
-                        st.error(f"Kuskure: {e}")
+                    response_text, error = safe_generate_content(client, [img, image_prompt])
+                    if response_text:
+                        st.info(response_text)
+                    else:
+                        st.warning(error)
 
     # ---------------- TAB 3: IMAGE STUDIO ULTRA ----------------
     with tab3:
@@ -314,15 +335,15 @@ if api_key:
             # Magic Enhance Prompt Button
             if st.button("🪄 Magic Enhance Prompt"):
                 with st.spinner("Gemini yana gyara prompt din..."):
-                    try:
-                        enhanced = client.models.generate_content(
-                            model='gemini-3.6-flash',
-                            contents=f"Expand this image prompt into a highly detailed cinematic visual prompt: '{gen_prompt}'"
-                        )
-                        st.session_state.preset_prompt = enhanced.text.strip()
+                    enhanced_text, error = safe_generate_content(
+                        client, 
+                        f"Expand this image prompt into a highly detailed cinematic visual prompt: '{gen_prompt}'"
+                    )
+                    if enhanced_text:
+                        st.session_state.preset_prompt = enhanced_text.strip()
                         st.rerun()
-                    except Exception as e:
-                        st.error(f"Kuskure: {e}")
+                    else:
+                        st.warning(error)
 
             style = st.selectbox("🎨 Salon Hoto (Art Style):", ["Photorealistic (Na Gaske)", "3D Render (Octane)", "Anime Art", "Cyberpunk Neon", "Cinematic Dark"])
             ratio = st.radio("📐 Formats (Aspect Ratio):", ["1:1 (Square)", "16:9 (Landscape)", "9:16 (Portrait)"], horizontal=True)
@@ -343,14 +364,11 @@ if api_key:
 
         if generate_btn:
             with st.spinner("⚡ Generation Engine yana aiki..."):
-                try:
-                    trans = client.models.generate_content(
-                        model='gemini-3.6-flash',
-                        contents=f"Translate this prompt to precise English image generation prompt: '{gen_prompt}'"
-                    )
-                    eng_prompt = trans.text.strip()
-                except Exception:
-                    eng_prompt = gen_prompt
+                trans_text, _ = safe_generate_content(
+                    client, 
+                    f"Translate this prompt to precise English image generation prompt: '{gen_prompt}'"
+                )
+                eng_prompt = trans_text.strip() if trans_text else gen_prompt
 
                 dim_map = {"1:1 (Square)": (1024, 1024), "16:9 (Landscape)": (1280, 720), "9:16 (Portrait)": (720, 1280)}
                 w, h = dim_map[ratio]
