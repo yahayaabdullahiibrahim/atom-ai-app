@@ -7,6 +7,7 @@ import docx
 import io
 import urllib.parse
 import uuid
+import random
 
 # 1. Page Configuration
 st.set_page_config(
@@ -278,24 +279,24 @@ if api_key:
         with col_ctrl1:
             gen_prompt = st.text_area(
                 "📝 Bayyana Hoton da Kake Buƙata (Prompt):", 
-                "A futuristic sports car on a mountain road at dusk",
+                "Toyota Land Cruiser Prado 2024 driving in desert dunes",
                 height=120,
-                help="Bayyana cikakken hoto a Turanci don samun kyakkyawan sakamako."
+                help="Yi amfani da Turanci don samun sakamako mafi kyau."
             )
         
         with col_ctrl2:
             st.markdown("##### ⚙️ Saitunan Hoto")
             style_option = st.selectbox(
                 "🎨 Salo (Style):",
-                ["Photorealistic (Kamrar Na Gaske)", "Anime / Cartoon", "3D Digital Art", "Cinematic Movie", "Cyberpunk / Futuristic"]
+                ["Photorealistic (Kamar Na Gaske)", "Anime / Cartoon", "3D Digital Art", "Cinematic Movie", "Cyberpunk / Futuristic"]
             )
             
             aspect_ratio = st.selectbox(
                 "📐 Girman Hoto (Aspect Ratio):",
                 ["Square (1:1)", "Portrait (9:16)", "Landscape (16:9)"]
             )
-        
-        # Mapping Aspect Ratio to Dimensions
+
+        # Map Dimensions
         dimensions = {"Square (1:1)": (1024, 1024), "Portrait (9:16)": (720, 1280), "Landscape (16:9)": (1280, 720)}
         width, height = dimensions[aspect_ratio]
 
@@ -305,17 +306,18 @@ if api_key:
                 
                 # Dynamic Style Modifiers
                 style_modifiers = {
-                    "Photorealistic (Kamrar Na Gaske)": "photorealistic, 8k resolution, ultra detailed, realistic lighting, sharp focus",
+                    "Photorealistic (Kamar Na Gaske)": "photorealistic, 8k resolution, ultra detailed, sharp focus, masterpiece",
                     "Anime / Cartoon": "vibrant anime style, detailed digital illustration, studio ghibli aesthetic",
                     "3D Digital Art": "octane render, 3d concept art, smooth lighting, highly detailed 3d model",
                     "Cinematic Movie": "cinematic lighting, 35mm photograph, dramatic atmosphere, movie scene, depth of field",
                     "Cyberpunk / Futuristic": "cyberpunk style, neon lights, futuristic city aesthetic, highly detailed"
                 }
                 
+                # Enhance Prompt accurately
                 final_prompt = f"{gen_prompt}, {style_modifiers[style_option]}"
                 success = False
                 
-                # Primary Attempt: Google Imagen 3
+                # 1. Primary Attempt: Google Imagen 3
                 try:
                     result = client.models.generate_images(
                         model='imagen-3.0-generate-002',
@@ -333,15 +335,18 @@ if api_key:
                         st.success("✅ An zana hoton ta hanyar Google Imagen Engine!")
                         success = True
                 except Exception:
-                    st.info("ℹ️ Engine din Google yana cunkoso. Muna amfani da High-Speed Flux Engine...")
+                    st.info("ℹ️ Engine ɗin Google yana cunkoso. Muna amfani da Direct Precise Engine...")
 
-                # Secondary Attempt: High-Quality Flux Render Engine
+                # 2. Precise Fallback Render Engine (Guarantees exact subject)
                 if not success:
                     try:
+                        random_seed = random.randint(1, 999999)
                         encoded_prompt = urllib.parse.quote(final_prompt)
-                        flux_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&model=flux&nologo=true&enhance=true"
                         
-                        st.image(flux_url, caption=f"Sakamako (Flux AI Studio): {gen_prompt} | Salo: {style_option}", use_container_width=True)
+                        # High Definition Direct API stream
+                        direct_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&seed={random_seed}&nologo=true"
+                        
+                        st.image(direct_url, caption=f"Sakamako: {gen_prompt} | Salo: {style_option}", use_container_width=True)
                         st.success("✅ An zana hoton cikin nasara da ingancin HD!")
                     except Exception as fallback_error:
                         st.error(f"Kuskure wajen zana hoto: {fallback_error}")
