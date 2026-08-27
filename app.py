@@ -179,7 +179,7 @@ if api_key:
     current_id = st.session_state.current_chat_id
     current_messages = st.session_state.chats[current_id]["messages"]
 
-    tab1, tab2, tab3 = st.tabs(["💬 Hira & Takardu", "🖼️ Bincikar Hoto", "🎨 Zana Hoto (Generate Image)"])
+    tab1, tab2, tab3 = st.tabs(["💬 Hira & Takardu", "🖼️ Bincikar Hoto", "🎨 Modern Studio (Zana Hoto)"])
 
     # ---------------- TAB 1: CHAT & DOCUMENTS ----------------
     with tab1:
@@ -268,26 +268,58 @@ if api_key:
                     except Exception as e:
                         st.error(f"Kuskure ya faru: {e}")
 
-    # ---------------- TAB 3: HIGH-QUALITY IMAGE GENERATION ----------------
+    # ---------------- TAB 3: MODERN IMAGE GENERATION STUDIO ----------------
     with tab3:
-        st.markdown("### 🎨 Zana Hoto Mai Matukar Kyau (HD/4K)")
-        st.caption("Bayyana irin hoton da kake bukata ta amfani da kalmomi daki-daki.")
+        st.markdown("### 🎨 ATOM Image Generation Studio")
+        st.caption("Gidan zana hoto na zamani da ke amfani da fasaha mai zurfi (Advanced AI Art Generation).")
         
-        gen_prompt = st.text_area(
-            "Rubuta bayanin hoton (Prompt):", 
-            "A realistic portrait of a young person in golden hour lighting, sharp focus, highly detailed skin texture, 8k resolution, photorealistic",
-            height=100
-        )
+        col_ctrl1, col_ctrl2 = st.columns([2, 1], gap="large")
         
-        if st.button("✨ Zana Hoton Yanzu"):
-            with st.spinner("ATOM yana tsara hotonku cikin inganci..."):
+        with col_ctrl1:
+            gen_prompt = st.text_area(
+                "📝 Bayyana Hoton da Kake Buƙata (Prompt):", 
+                "A futuristic sports car on a mountain road at dusk",
+                height=120,
+                help="Bayyana cikakken hoto a Turanci don samun kyakkyawan sakamako."
+            )
+        
+        with col_ctrl2:
+            st.markdown("##### ⚙️ Saitunan Hoto")
+            style_option = st.selectbox(
+                "🎨 Salo (Style):",
+                ["Photorealistic (Kamrar Na Gaske)", "Anime / Cartoon", "3D Digital Art", "Cinematic Movie", "Cyberpunk / Futuristic"]
+            )
+            
+            aspect_ratio = st.selectbox(
+                "📐 Girman Hoto (Aspect Ratio):",
+                ["Square (1:1)", "Portrait (9:16)", "Landscape (16:9)"]
+            )
+        
+        # Mapping Aspect Ratio to Dimensions
+        dimensions = {"Square (1:1)": (1024, 1024), "Portrait (9:16)": (720, 1280), "Landscape (16:9)": (1280, 720)}
+        width, height = dimensions[aspect_ratio]
+
+        st.markdown("---")
+        if st.button("✨ Zana Hoton Yanzu (Generate HD Image)", use_container_width=True):
+            with st.spinner("🚀 ATOM yana harhada hotonka a dakin gwaji..."):
+                
+                # Dynamic Style Modifiers
+                style_modifiers = {
+                    "Photorealistic (Kamrar Na Gaske)": "photorealistic, 8k resolution, ultra detailed, realistic lighting, sharp focus",
+                    "Anime / Cartoon": "vibrant anime style, detailed digital illustration, studio ghibli aesthetic",
+                    "3D Digital Art": "octane render, 3d concept art, smooth lighting, highly detailed 3d model",
+                    "Cinematic Movie": "cinematic lighting, 35mm photograph, dramatic atmosphere, movie scene, depth of field",
+                    "Cyberpunk / Futuristic": "cyberpunk style, neon lights, futuristic city aesthetic, highly detailed"
+                }
+                
+                final_prompt = f"{gen_prompt}, {style_modifiers[style_option]}"
                 success = False
                 
-                # Gwaji na 1: Google Imagen 3
+                # Primary Attempt: Google Imagen 3
                 try:
                     result = client.models.generate_images(
                         model='imagen-3.0-generate-002',
-                        prompt=gen_prompt,
+                        prompt=final_prompt,
                         config=types.GenerateImagesConfig(
                             number_of_images=1,
                             output_mime_type="image/jpeg",
@@ -297,26 +329,22 @@ if api_key:
                     
                     for generated_image in result.generated_images:
                         image = Image.open(io.BytesIO(generated_image.image.image_bytes))
-                        st.image(image, caption=f"Sakamako (Google Imagen Ultra): {gen_prompt}", use_container_width=True)
-                        st.success("✅ An zana hoton mai inganci ta Google Imagen!")
+                        st.image(image, caption=f"Sakamako (Google Imagen 3): {gen_prompt}", use_container_width=True)
+                        st.success("✅ An zana hoton ta hanyar Google Imagen Engine!")
                         success = True
                 except Exception:
-                    st.info("ℹ️ Google Imagen na samun cunkoso, muna fito da hoton ta amfani da High-Resolution Render Engine...")
+                    st.info("ℹ️ Engine din Google yana cunkoso. Muna amfani da High-Speed Flux Engine...")
 
-                # Gwaji na 2: High-Quality Flux Render Engine
+                # Secondary Attempt: High-Quality Flux Render Engine
                 if not success:
                     try:
-                        # Auto-enhance prompt for HD clarity
-                        enhanced_prompt = f"{gen_prompt}, 8k resolution, highly detailed, photorealistic, cinematic lighting, sharp focus"
-                        encoded_prompt = urllib.parse.quote(enhanced_prompt)
+                        encoded_prompt = urllib.parse.quote(final_prompt)
+                        flux_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&model=flux&nologo=true&enhance=true"
                         
-                        # High Definition Model URL Stream (Flux Model)
-                        hd_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1080&height=1080&model=flux&nologo=true&enhance=true"
-                        
-                        st.image(hd_url, caption=f"Sakamako (HD Flux Engine): {gen_prompt}", use_container_width=True)
-                        st.success("✅ An zana hoton HD mai matukar inganci da kyau!")
+                        st.image(flux_url, caption=f"Sakamako (Flux AI Studio): {gen_prompt} | Salo: {style_option}", use_container_width=True)
+                        st.success("✅ An zana hoton cikin nasara da ingancin HD!")
                     except Exception as fallback_error:
-                        st.error(f"Kuskure: {fallback_error}")
+                        st.error(f"Kuskure wajen zana hoto: {fallback_error}")
 
 else:
     st.warning("⚠️ Da fatan za ka saka Gemini API Key ɗinka a gefen hagu (Sidebar) domin Fara amfani da ATOM AI.")
