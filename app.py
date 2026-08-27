@@ -120,14 +120,13 @@ st.markdown("""
 
 # 3. Session State Storage Initialization
 if "chats" not in st.session_state:
-    st.session_state.chats = {}  # Store all session histories {chat_id: {"title": ..., "messages": [...]}}
+    st.session_state.chats = {}
 
 if "current_chat_id" not in st.session_state:
     new_id = str(uuid.uuid4())
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
-# Function to start a new chat
 def start_new_chat():
     new_id = str(uuid.uuid4())
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
@@ -148,20 +147,17 @@ with st.sidebar:
     api_key = st.text_input("🔑 Saka Gemini API Key:", type="password", help="Sami API key daga Google AI Studio")
     st.markdown("---")
     
-    # New Chat Button
     if st.button("➕ Sabuwar Hira (New Chat)", use_container_width=True):
         start_new_chat()
         st.rerun()
 
     st.markdown("### 💬 Tarihin Hirarraki (Saved Topics)")
     
-    # List Saved Topics
     chat_ids = list(st.session_state.chats.keys())
     for cid in reversed(chat_ids):
         chat_data = st.session_state.chats[cid]
         title = chat_data["title"]
         
-        # Highlight active chat
         if cid == st.session_state.current_chat_id:
             button_label = f"💬  {title}"
         else:
@@ -182,11 +178,9 @@ if api_key:
     Amsoshinka su kasance a tsara, masu kyawun fasali da girmamawa.
     """
 
-    # Get Active Chat Session
     current_id = st.session_state.current_chat_id
     current_messages = st.session_state.chats[current_id]["messages"]
 
-    # Navigation Tabs
     tab1, tab2, tab3 = st.tabs(["💬 Hira & Takardu", "🖼️ Bincikar Hoto", "🎨 Zana Hoto (Generate Image)"])
 
     # ---------------- TAB 1: CHAT & DOCUMENTS ----------------
@@ -215,18 +209,15 @@ if api_key:
         with col2:
             st.markdown("##### 💬 Dandalin Hira")
             
-            # Display Active Chat History
             for msg in current_messages:
                 with st.chat_message(msg["role"]):
                     st.markdown(msg["content"])
 
             if user_input := st.chat_input("Rubuta sakonka ko tambayarka a nan..."):
-                # Save User Message
                 current_messages.append({"role": "user", "content": user_input})
                 with st.chat_message("user"):
                     st.markdown(user_input)
 
-                # Auto-generate topic title if it's the first message
                 if len(current_messages) == 1:
                     topic_title = user_input[:25] + "..." if len(user_input) > 25 else user_input
                     st.session_state.chats[current_id]["title"] = topic_title
@@ -308,28 +299,22 @@ if api_key:
                     
                     for generated_image in result.generated_images:
                         image = Image.open(io.BytesIO(generated_image.image.image_bytes))
-                        st.image(image, caption=f"Sakamako: {gen_prompt}", use_container_width=True)
-                        st.success("✅ An zamanto da hoton ta hanyar Google Imagen Engine!")
+                        st.image(image, caption=f"Sakamako (Google Imagen): {gen_prompt}", use_container_width=True)
+                        st.success("✅ An zana hoton ta hanyar Google Imagen Engine!")
                         success = True
                 except Exception:
-                    st.warning("⚠️ Engine din farko yana cunkoso. Muna komawa kan Fast Engine...")
+                    st.warning("⚠️ Engine din Google yana cunkoso. Muna amfani da Direct Render Engine...")
 
-                # Fallback Engine
+                # Fallback Render Engine (Direct URL stream)
                 if not success:
                     try:
                         encoded_prompt = urllib.parse.quote(gen_prompt)
-                        fallback_url = f"https://pollinations.ai/p/{encoded_prompt}?width=1024&height=1024&seed=42&model=flux"
+                        direct_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
                         
-                        response = requests.get(fallback_url)
-                        if response.status_code == 200:
-                            image = Image.open(io.BytesIO(response.content))
-                            st.image(image, caption=f"Sakamako: {gen_prompt}", use_container_width=True)
-                            st.success("✅ An zana hoton cikin nasara!")
-                        else:
-                            st.error("❌ An samu matsala wajen zana hoton.")
+                        st.image(direct_url, caption=f"Sakamako (Direct AI Render): {gen_prompt}", use_container_width=True)
+                        st.success("✅ An zana hoton cikin nasara!")
                     except Exception as fallback_error:
-                        st.error(f"Kuskure: {fallback_error}")
+                        st.error(f"Kuskure wajen haɗawa: {fallback_error}")
 
 else:
-    # Unauthenticated View
     st.warning("⚠️ Da fatan za ka saka Gemini API Key ɗinka a gefen hagu (Sidebar) domin Fara amfani da ATOM AI.")
