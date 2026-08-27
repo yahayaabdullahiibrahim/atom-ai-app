@@ -7,6 +7,7 @@ import docx
 import io
 import urllib.parse
 import requests
+import uuid
 
 # 1. Page Configuration
 st.set_page_config(
@@ -99,7 +100,7 @@ st.markdown("""
         background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
         color: white;
         border: none;
-        padding: 12px 24px;
+        padding: 10px 20px;
         font-weight: 600;
         border-radius: 10px;
         transition: all 0.3s ease;
@@ -111,26 +112,28 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
     }
 
-    /* Text Inputs and Uploaders */
-    .stTextInput input, .stTextArea textarea {
-        background-color: #1A1D27 !important;
-        border: 1px solid #2E3245 !important;
-        color: #FFFFFF !important;
-        border-radius: 10px !important;
-    }
-
-    .stTextInput input:focus, .stTextArea textarea:focus {
-        border-color: #6366F1 !important;
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
-    }
-
     /* Hide Streamlit Branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Main Header Section
+# 3. Session State Storage Initialization
+if "chats" not in st.session_state:
+    st.session_state.chats = {}  # Store all session histories {chat_id: {"title": ..., "messages": [...]}}
+
+if "current_chat_id" not in st.session_state:
+    new_id = str(uuid.uuid4())
+    st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
+    st.session_state.current_chat_id = new_id
+
+# Function to start a new chat
+def start_new_chat():
+    new_id = str(uuid.uuid4())
+    st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
+    st.session_state.current_chat_id = new_id
+
+# 4. Main Header Section
 st.markdown("""
     <div class="main-header">
         <div class="badge">NEXT-GEN AI WORKSPACE</div>
@@ -139,23 +142,36 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# 4. Sidebar Configuration
+# 5. Sidebar Configuration & Chat History
 with st.sidebar:
     st.markdown("### ⚙️ Saitunan Tsari")
-    st.markdown("---")
     api_key = st.text_input("🔑 Saka Gemini API Key:", type="password", help="Sami API key daga Google AI Studio")
-    
     st.markdown("---")
-    st.markdown("""
-        <div style="background-color: #1A1D27; padding: 16px; border-radius: 10px; border: 1px solid #2E3245;">
-            <h5 style="color: #6366F1; margin-top: 0;">💡 Gamayyar Bayani:</h5>
-            <p style="color: #94A3B8; font-size: 0.85rem; margin-bottom: 0;">
-                ATOM AI yana amfani da sabbin samfuran <b>Gemini 3.6 Flash</b> da <b>Imagen 3</b> don baka sakamako mai sauri da inganci.
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
+    
+    # New Chat Button
+    if st.button("➕ Sabuwar Hira (New Chat)", use_container_width=True):
+        start_new_chat()
+        st.rerun()
 
-# 5. Main Application Logic
+    st.markdown("### 💬 Tarihin Hirarraki (Saved Topics)")
+    
+    # List Saved Topics
+    chat_ids = list(st.session_state.chats.keys())
+    for cid in reversed(chat_ids):
+        chat_data = st.session_state.chats[cid]
+        title = chat_data["title"]
+        
+        # Highlight active chat
+        if cid == st.session_state.current_chat_id:
+            button_label = f"💬  {title}"
+        else:
+            button_label = f"📁 {title}"
+            
+        if st.button(button_label, key=f"btn_{cid}", use_container_width=True):
+            st.session_state.current_chat_id = cid
+            st.rerun()
+
+# 6. Main Application Logic
 if api_key:
     client = genai.Client(api_key=api_key.strip())
     
@@ -166,8 +182,9 @@ if api_key:
     Amsoshinka su kasance a tsara, masu kyawun fasali da girmamawa.
     """
 
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    # Get Active Chat Session
+    current_id = st.session_state.current_chat_id
+    current_messages = st.session_state.chats[current_id]["messages"]
 
     # Navigation Tabs
     tab1, tab2, tab3 = st.tabs(["💬 Hira & Takardu", "🖼️ Bincikar Hoto", "🎨 Zana Hoto (Generate Image)"])
@@ -198,15 +215,21 @@ if api_key:
         with col2:
             st.markdown("##### 💬 Dandalin Hira")
             
-            # Display Chat History
-            for msg in st.session_state.messages:
+            # Display Active Chat History
+            for msg in current_messages:
                 with st.chat_message(msg["role"]):
                     st.markdown(msg["content"])
 
             if user_input := st.chat_input("Rubuta sakonka ko tambayarka a nan..."):
-                st.session_state.messages.append({"role": "user", "content": user_input})
+                # Save User Message
+                current_messages.append({"role": "user", "content": user_input})
                 with st.chat_message("user"):
                     st.markdown(user_input)
+
+                # Auto-generate topic title if it's the first message
+                if len(current_messages) == 1:
+                    topic_title = user_input[:25] + "..." if len(user_input) > 25 else user_input
+                    st.session_state.chats[current_id]["title"] = topic_title
 
                 full_prompt = user_input
                 if doc_text:
@@ -223,7 +246,8 @@ if api_key:
                                 ),
                             )
                             st.markdown(response.text)
-                            st.session_state.messages.append({"role": "assistant", "content": response.text})
+                            current_messages.append({"role": "assistant", "content": response.text})
+                            st.rerun()
                         except Exception as e:
                             st.error(f"Kuskure ya faru: {e}")
 
