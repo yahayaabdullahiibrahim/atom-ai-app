@@ -176,10 +176,10 @@ def start_new_chat():
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
-# Safe API Call Handler with Rate Limit Protection
-def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retries=2):
+# Safe API Call Handler with 503 Retry & 429 Protection
+def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retries=3):
     """
-    Auto-retry & robust error handler for Gemini API calls.
+    Auto-retry with exponential backoff for 503 & 429 Gemini API calls.
     """
     for attempt in range(max_retries + 1):
         try:
@@ -190,12 +190,25 @@ def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retrie
             return res.text, None
         except Exception as e:
             err_msg = str(e)
-            if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+            
+            # Handle 503 (Overloaded) and 429 (Rate Limit)
+            if any(code in err_msg for code in ["503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED"]):
                 if attempt < max_retries:
-                    time.sleep(4)  # Wait 4 seconds before retry
+                    # Exponential Backoff: Wait 4s, 8s, 16s...
+                    sleep_time = (attempt + 1) * 4
+                    st.toast(f"⏳ Cunkoso a server (503/429). ATOM zai sake gwada bayan dakika {sleep_time}...", icon="⏳")
+                    time.sleep(sleep_time)
                     continue
-                return None, "⏳ Ka tsallake iyakokin amfani kyauta (Rate Limit). Da fatan ka jira dakika 30-60 sannan ka sake gwada, ko ka canza API Key."
-            elif "401" in err_msg or "UNAUTHENTICATED" in err_msg:
+                
+                # If all retries failed
+                friendly_err = "⏳ Servers din Google suna fuskantar matsanancin cunkoso a halin yanzu. "
+                if "503" in err_msg:
+                    friendly_err += "Da fatan sake gwada bayan 'yan mintuna (503 Service Unavailable)."
+                else:
+                    friendly_err += "Ka tsallake iyakokin Free Tier. Da fatan sake gwada bayan dakika 60."
+                return None, friendly_err
+                
+            elif any(code in err_msg for code in ["401", "UNAUTHENTICATED"]):
                 return None, "🔑 Kuskuren API Key: Tabbatar an saka ingantaccen Gemini API Key a gefen hagu."
             else:
                 return None, f"Kuskure: {err_msg}"
@@ -229,7 +242,6 @@ with st.sidebar:
 
 # 6. Main Core Engine
 if api_key:
-    # Explicitly pass api_key parameter to eliminate 401 Authentication issues
     clean_api_key = api_key.strip()
     client = genai.Client(api_key=clean_api_key)
     current_id = st.session_state.current_chat_id
@@ -364,11 +376,16 @@ if api_key:
 
         if generate_btn:
             with st.spinner("⚡ Generation Engine yana aiki..."):
-                trans_text, _ = safe_generate_content(
+                trans_text, error = safe_generate_content(
                     client, 
                     f"Translate this prompt to precise English image generation prompt: '{gen_prompt}'"
                 )
-                eng_prompt = trans_text.strip() if trans_text else gen_prompt
+                
+                if not trans_text:
+                    st.warning(error)
+                    eng_prompt = gen_prompt # Fallback
+                else:
+                    eng_prompt = trans_text.strip()
 
                 dim_map = {"1:1 (Square)": (1024, 1024), "16:9 (Landscape)": (1280, 720), "9:16 (Portrait)": (720, 1280)}
                 w, h = dim_map[ratio]
