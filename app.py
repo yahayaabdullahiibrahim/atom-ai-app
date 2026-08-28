@@ -201,9 +201,9 @@ def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retrie
                     st.toast(f"⏳ Cunkoso a server. ATOM zai sake gwada bayan dakika {sleep_time}...", icon="⏳")
                     time.sleep(sleep_time)
                     continue
-                return None, "⏳ Quota din asusunka ta cika (Rate Limit/Quota Exceeded). Da fatan sake gwada da sabon API key."
+                return None, "⏳ Quota din asusunka ta cika (Rate Limit/Quota Exceeded). Da fatan sake gwada daga baya."
             elif any(code in err_msg for code in ["401", "UNAUTHENTICATED"]):
-                return None, "🔑 Kuskuren API Key: Tabbatar an saka ingantaccen Gemini API Key a gefen hagu."
+                return None, "🔑 Kuskuren API Key: Tabbatar an saka ingantaccen Gemini API Key."
             else:
                 return None, f"Kuskure: {err_msg}"
 
@@ -216,10 +216,18 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# API Key Retrieval Logic (Checks Secrets First, then Sidebar Fallback)
+api_key = st.secrets.get("GEMINI_API_KEY", "")
+
 # 5. Sidebar Navigation
 with st.sidebar:
     st.markdown("<h3 style='color: white;'>⚙️ Control Center</h3>", unsafe_allow_html=True)
-    api_key = st.text_input("🔑 Gemini API Key:", type="password", help="Saka API key dinka a nan")
+    
+    if api_key:
+        st.success("🟢 API System Connected")
+    else:
+        api_key = st.text_input("🔑 Gemini API Key:", type="password", help="Saka API key dinka a nan")
+        
     st.markdown("---")
     
     if st.button("➕ New Workspace Session", use_container_width=True):
@@ -406,4 +414,4 @@ if api_key:
                     st.markdown("</div>", unsafe_allow_html=True)
 
 else:
-    st.warning("⚠️ Saka Gemini API Key dinka a Control Center (gefen hagu) domin kunna dandalin.")
+    st.warning("⚠️ Sanya Gemini API Key dinka a Secrets ko a Control Center domin kunna dandalin.")
