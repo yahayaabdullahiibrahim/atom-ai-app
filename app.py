@@ -17,81 +17,123 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. Optimized Mobile-Friendly CSS (Gyararren Buttons & Gaps)
+# 2. Modern Clean & Fresh Light Theme CSS
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
     
     html, body, [data-testid="stAppViewContainer"] {
-        background-color: #0d1117;
+        background-color: #F8FAFC !important;
         font-family: 'Plus Jakarta Sans', sans-serif;
-        color: #f0f6fc;
+        color: #0F172A !important;
     }
 
-    /* Clean Card & Spacing */
+    /* Modern Card Layout */
     .glass-card {
-        background: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 12px;
-        padding: 16px;
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        padding: 20px;
         margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     }
 
-    /* FIX BUTTON SPACING & LAYOUT FOR MOBILE */
+    /* FIX BUTTON SPACING & LIGHT STYLING */
     .stButton {
         margin-top: 8px !important;
         margin-bottom: 8px !important;
     }
 
     .stButton>button {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
-        color: #ffffff !important;
+        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+        color: #FFFFFF !important;
         border: none !important;
-        padding: 10px 16px !important;
+        padding: 12px 20px !important;
         font-weight: 600 !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
         width: 100% !important;
         display: block !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2) !important;
     }
 
-    /* Chat Messages Visibility */
+    .stButton>button:hover {
+        background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
+        box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3) !important;
+    }
+
+    /* Fresh Chat Bubble Visibility */
     [data-testid="stChatMessage"] {
-        background-color: #161b22 !important;
-        border: 1px solid #30363d !important;
-        border-radius: 12px !important;
-        color: #f0f6fc !important;
-        padding: 12px !important;
-        margin-bottom: 12px !important;
+        background-color: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 16px !important;
+        color: #0F172A !important;
+        padding: 16px !important;
+        margin-bottom: 14px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
     }
 
     [data-testid="stChatMessage"] p {
-        color: #f0f6fc !important;
+        color: #0F172A !important;
         font-size: 1rem !important;
+        line-height: 1.6 !important;
     }
 
-    /* Input Fields Fix */
+    /* Inputs Fix for Light Mode */
     .stTextArea textarea, .stTextInput input, [data-testid="stChatInput"] textarea {
-        background-color: #0d1117 !important;
-        border: 1px solid #30363d !important;
-        color: #ffffff !important;
-        border-radius: 8px !important;
+        background-color: #FFFFFF !important;
+        border: 1px solid #CBD5E1 !important;
+        color: #0F172A !important;
+        border-radius: 10px !important;
+    }
+
+    .stTextArea textarea:focus, .stTextInput input:focus, [data-testid="stChatInput"] textarea:focus {
+        border-color: #2563EB !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
     }
 
     /* Header styling */
     .main-header {
         text-align: center;
-        padding: 15px 10px;
-        margin-bottom: 20px;
-        background: #161b22;
-        border-radius: 12px;
-        border: 1px solid #30363d;
+        padding: 20px 10px;
+        margin-bottom: 25px;
+        background: #FFFFFF;
+        border-radius: 16px;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
 
     .main-title {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #58a6ff;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1E3A8A;
+        letter-spacing: -0.5px;
+    }
+
+    /* Sidebar Clean styling */
+    section[data-testid="stSidebar"] {
+        background-color: #F1F5F9 !important;
+        border-right: 1px solid #E2E8F0 !important;
+    }
+
+    /* Tabs Styling */
+    .stTabs [data-baseweb="tab-list"] {
+        background: #E2E8F0;
+        padding: 6px;
+        border-radius: 14px;
+        gap: 8px;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 10px;
+        color: #475569 !important;
+        font-weight: 600;
+        padding: 10px 20px;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: #FFFFFF !important;
+        color: #2563EB !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     #MainMenu, footer, header {visibility: hidden;}
@@ -140,7 +182,7 @@ def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retrie
 st.markdown("""
     <div class="main-header">
         <div class="main-title">⚡ ATOM Studio Ultra</div>
-        <div style="color: #8b949e; font-size: 0.85rem;">AI Workspace - Fast & Mobile Optimized</div>
+        <div style="color: #64748B; font-size: 0.9rem;">Clean & Fast AI Workspace</div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -149,9 +191,9 @@ api_key = ""
 if "GEMINI_API_KEY" in st.secrets:
     api_key = st.secrets["GEMINI_API_KEY"]
 
-# Sidebar
+# Sidebar Navigation
 with st.sidebar:
-    st.markdown("### ⚙️ Control Center")
+    st.markdown("<h3 style='color: #0F172A;'>⚙️ Control Center</h3>", unsafe_allow_html=True)
     if api_key:
         st.success("🟢 API Connected")
     else:
@@ -164,7 +206,7 @@ with st.sidebar:
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("#### 💬 Hirarrakin Baya")
+    st.markdown("<h4 style='color: #475569;'>💬 Hirarrakin Baya</h4>", unsafe_allow_html=True)
     for cid in reversed(list(st.session_state.chats.keys())):
         chat_data = st.session_state.chats[cid]
         label = f"💬 {chat_data['title']}" if cid == st.session_state.current_chat_id else f"📁 {chat_data['title']}"
@@ -174,7 +216,7 @@ with st.sidebar:
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
-# Engine Logic
+# Main Engine Logic
 if api_key:
     client = genai.Client(api_key=api_key.strip())
     current_id = st.session_state.current_chat_id
@@ -208,12 +250,12 @@ if api_key:
                 except Exception as e:
                     st.error(f"Kuskure: {e}")
 
-        # Display Existing Messages
+        # Display Chat Messages
         for msg in current_messages:
             with st.chat_message(msg["role"]):
                 st.write(msg["content"])
 
-        # Input Field
+        # Chat Input Field
         user_input = st.chat_input("Rubuta tambayarku a nan...")
         
         if user_input:
