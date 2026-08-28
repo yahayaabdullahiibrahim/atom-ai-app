@@ -17,15 +17,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. Modern Glassmorphism & Cyberpunk CSS
+# 2. Modern High-Contrast CSS (Gyararren Launin Rubutu)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
     
     html, body, [data-testid="stAppViewContainer"] {
-        background: #030712;
+        background: #090d16;
         font-family: 'Plus Jakarta Sans', sans-serif;
-        color: #F3F4F6;
+        color: #FFFFFF !important;
     }
 
     /* Background Neon Glows */
@@ -36,7 +36,7 @@ st.markdown("""
         left: -100px;
         width: 450px;
         height: 450px;
-        background: rgba(99, 102, 241, 0.15);
+        background: rgba(99, 102, 241, 0.12);
         filter: blur(140px);
         border-radius: 50%;
         z-index: 0;
@@ -49,7 +49,7 @@ st.markdown("""
         right: -100px;
         width: 450px;
         height: 450px;
-        background: rgba(236, 72, 153, 0.12);
+        background: rgba(236, 72, 153, 0.1);
         filter: blur(140px);
         border-radius: 50%;
         z-index: 0;
@@ -57,9 +57,9 @@ st.markdown("""
     
     /* Header Container */
     .hero-header {
-        background: linear-gradient(180deg, rgba(17, 24, 39, 0.8) 0%, rgba(3, 7, 18, 0.9) 100%);
+        background: rgba(17, 24, 39, 0.85);
         backdrop-filter: blur(25px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         padding: 30px 20px;
         border-radius: 24px;
         text-align: center;
@@ -70,7 +70,7 @@ st.markdown("""
     .hero-title {
         font-size: 2.8rem;
         font-weight: 800;
-        background: linear-gradient(90deg, #6366F1 0%, #EC4899 50%, #8B5CF6 100%);
+        background: linear-gradient(90deg, #818CF8 0%, #F472B6 50%, #A78BFA 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 6px;
@@ -79,26 +79,50 @@ st.markdown("""
     
     /* Glass Cards */
     .glass-card {
-        background: rgba(17, 24, 39, 0.6);
+        background: rgba(17, 24, 39, 0.75);
         backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 20px;
         padding: 22px;
         margin-bottom: 20px;
         transition: all 0.3s ease;
     }
     
-    .glass-card:hover {
-        border-color: rgba(99, 102, 241, 0.4);
-        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.15);
+    /* FIXING TEXT VISIBILITY IN CHAT & INPUTS */
+    [data-testid="stChatMessage"] {
+        background-color: rgba(30, 41, 59, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 16px !important;
+        color: #FFFFFF !important;
+        margin-bottom: 12px !important;
     }
 
-    /* Modernized Tabs Styling */
+    [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span, [data-testid="stChatMessage"] div {
+        color: #F3F4F6 !important;
+        font-size: 1.05rem !important;
+        line-height: 1.6 !important;
+    }
+
+    /* Input text color fix */
+    .stTextArea textarea, .stTextInput input, [data-testid="stChatInput"] textarea {
+        background: #0f172a !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: #FFFFFF !important;
+        border-radius: 12px !important;
+        font-size: 1rem !important;
+    }
+    
+    .stTextArea textarea:focus, .stTextInput input:focus, [data-testid="stChatInput"] textarea:focus {
+        border-color: #A78BFA !important;
+        box-shadow: 0 0 15px rgba(167, 139, 250, 0.4) !important;
+    }
+
+    /* Tabs Styling */
     .stTabs [data-baseweb="tab-list"] {
-        background: rgba(17, 24, 39, 0.8);
+        background: rgba(17, 24, 39, 0.9);
         padding: 8px;
         border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         gap: 12px;
         display: flex;
         justify-content: center;
@@ -106,17 +130,12 @@ st.markdown("""
 
     .stTabs [data-baseweb="tab"] {
         border-radius: 14px;
-        color: #9CA3AF;
+        color: #D1D5DB !important;
         font-weight: 700;
         padding: 12px 24px;
         border: none;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s ease;
         font-size: 0.95rem;
-    }
-
-    .stTabs [data-baseweb="tab"]:hover {
-        color: #FFFFFF;
-        background: rgba(255, 255, 255, 0.05);
     }
 
     .stTabs [aria-selected="true"] {
@@ -128,36 +147,17 @@ st.markdown("""
     /* Buttons Override */
     .stButton>button {
         background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
-        color: white;
+        color: #FFFFFF !important;
         border: none;
         padding: 12px 22px;
         font-weight: 700;
         border-radius: 12px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
-    }
-
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.45);
-    }
-
-    /* Custom Inputs */
-    .stTextArea textarea, .stTextInput input {
-        background: rgba(3, 7, 18, 0.85) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        color: #FFFFFF !important;
-        border-radius: 12px !important;
-    }
-    
-    .stTextArea textarea:focus, .stTextInput input:focus {
-        border-color: #8B5CF6 !important;
-        box-shadow: 0 0 15px rgba(139, 92, 246, 0.3) !important;
+        transition: all 0.3s ease;
     }
 
     section[data-testid="stSidebar"] {
         background: #030712;
-        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     #MainMenu, footer, header {visibility: hidden;}
@@ -210,9 +210,9 @@ def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retrie
 # 4. Header UI
 st.markdown("""
     <div class="hero-header">
-        <div style="color: #8B5CF6; font-size: 0.8rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 4px;">NEXT-GEN CREATIVE PLATFORM</div>
+        <div style="color: #A78BFA; font-size: 0.8rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 4px;">NEXT-GEN CREATIVE PLATFORM</div>
         <div class="hero-title">⚡ ATOM Studio Ultra</div>
-        <div style="color: #9CA3AF; font-size: 0.95rem;">Dandalin Hira, Bincike, da Zana Hotuna na AI</div>
+        <div style="color: #D1D5DB; font-size: 0.95rem;">Dandalin Hira, Bincike, da Zana Hotuna na AI</div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -249,7 +249,7 @@ if api_key:
     current_id = st.session_state.current_chat_id
     current_messages = st.session_state.chats[current_id]["messages"]
 
-    # Sababbin Sunayen Tabs Na Zamani
+    # Tabs Navigation
     tab1, tab2, tab3, tab4 = st.tabs([
         "⚡ Smart AI & Docs", 
         "🔍 Intelligent Vision", 
@@ -261,7 +261,7 @@ if api_key:
     with tab1:
         col1, col2 = st.columns([1, 2], gap="large")
         with col1:
-            st.markdown("<div class='glass-card'><h5>📄 Smart Document Reader</h5>", unsafe_allow_html=True)
+            st.markdown("<div class='glass-card'><h5 style='color:white;'>📄 Smart Document Reader</h5>", unsafe_allow_html=True)
             uploaded_doc = st.file_uploader("Sanya PDF, DOCX, ko TXT", type=["pdf", "docx", "txt"])
             st.markdown("</div>", unsafe_allow_html=True)
             doc_text = ""
@@ -349,7 +349,7 @@ if api_key:
             st.markdown("<div class='glass-card' style='text-align: center;'>", unsafe_allow_html=True)
             image_placeholder = st.empty()
             image_placeholder.markdown("""
-                <div style="padding: 70px 20px; color: #4B5563;">
+                <div style="padding: 70px 20px; color: #9CA3AF;">
                     <div style="font-size: 3rem; margin-bottom: 8px;">✨</div>
                     Sakamakon zane zai bayyana a nan.
                 </div>
