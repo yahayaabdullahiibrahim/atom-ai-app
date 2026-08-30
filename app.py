@@ -11,136 +11,57 @@ import time
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="ATOM AI - Ultra Modern Suite", 
+    page_title="ATOM AI - Bootstrap Suite", 
     page_icon="⚡", 
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# 2. Modern Clean & Fresh Light Theme CSS
+# 2. Injecting Bootstrap 5 CSS CDN
 st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
+    <style>
+    /* Minimal Streamlit Overrides to support Bootstrap */
     html, body, [data-testid="stAppViewContainer"] {
-        background-color: #F8FAFC !important;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        color: #0F172A !important;
+        background-color: #f8f9fa !important;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
-    /* Modern Card Layout */
-    .glass-card {
-        background: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    }
-
-    /* FIX BUTTON SPACING & LIGHT STYLING */
-    .stButton {
-        margin-top: 8px !important;
-        margin-bottom: 8px !important;
-    }
-
+    /* Streamlit Native Buttons Overridden with Bootstrap Look */
     .stButton>button {
-        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
-        color: #FFFFFF !important;
+        background-color: #0d6efd !important;
+        color: #ffffff !important;
         border: none !important;
-        padding: 12px 20px !important;
+        border-radius: 0.375rem !important;
+        padding: 0.5rem 1rem !important;
         font-weight: 600 !important;
-        border-radius: 12px !important;
         width: 100% !important;
-        display: block !important;
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2) !important;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
     }
 
     .stButton>button:hover {
-        background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
-        box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3) !important;
+        background-color: #0b5ed7 !important;
     }
 
-    /* Fresh Chat Bubble Visibility */
+    /* Native Chat Message Styling */
     [data-testid="stChatMessage"] {
-        background-color: #FFFFFF !important;
-        border: 1px solid #E2E8F0 !important;
-        border-radius: 16px !important;
-        color: #0F172A !important;
-        padding: 16px !important;
-        margin-bottom: 14px !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+        background-color: #ffffff !important;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 0.5rem !important;
+        color: #212529 !important;
+        padding: 1rem !important;
+        margin-bottom: 0.75rem !important;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05) !important;
     }
 
-    [data-testid="stChatMessage"] p {
-        color: #0F172A !important;
-        font-size: 1rem !important;
-        line-height: 1.6 !important;
-    }
-
-    /* Inputs Fix for Light Mode */
-    .stTextArea textarea, .stTextInput input, [data-testid="stChatInput"] textarea {
-        background-color: #FFFFFF !important;
-        border: 1px solid #CBD5E1 !important;
-        color: #0F172A !important;
-        border-radius: 10px !important;
-    }
-
-    .stTextArea textarea:focus, .stTextInput input:focus, [data-testid="stChatInput"] textarea:focus {
-        border-color: #2563EB !important;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
-    }
-
-    /* Header styling */
-    .main-header {
-        text-align: center;
-        padding: 20px 10px;
-        margin-bottom: 25px;
-        background: #FFFFFF;
-        border-radius: 16px;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    }
-
-    .main-title {
-        font-size: 2rem;
-        font-weight: 800;
-        color: #1E3A8A;
-        letter-spacing: -0.5px;
-    }
-
-    /* Sidebar Clean styling */
-    section[data-testid="stSidebar"] {
-        background-color: #F1F5F9 !important;
-        border-right: 1px solid #E2E8F0 !important;
-    }
-
-    /* Tabs Styling */
-    .stTabs [data-baseweb="tab-list"] {
-        background: #E2E8F0;
-        padding: 6px;
-        border-radius: 14px;
-        gap: 8px;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 10px;
-        color: #475569 !important;
-        font-weight: 600;
-        padding: 10px 20px;
-    }
-
-    .stTabs [aria-selected="true"] {
-        background: #FFFFFF !important;
-        color: #2563EB !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
+    /* Hide Default Headers */
     #MainMenu, footer, header {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Session State Management
+# 3. Session State
 if "chats" not in st.session_state:
     st.session_state.chats = {}
 
@@ -160,7 +81,7 @@ def start_new_chat():
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
-# Safe API Handler
+# Safe API Call Handler
 def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retries=2):
     for attempt in range(max_retries + 1):
         try:
@@ -178,45 +99,41 @@ def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retrie
                 return None, "⏳ An samu cunkoso. Da fatan sake gwada bayan dakika kadan."
             return None, f"Kuskure: {err_msg}"
 
-# Header UI
+# Header Using Pure Bootstrap Classes
 st.markdown("""
-    <div class="main-header">
-        <div class="main-title">⚡ ATOM Studio Ultra</div>
-        <div style="color: #64748B; font-size: 0.9rem;">Clean & Fast AI Workspace</div>
+    <div class="container my-3 p-4 bg-white rounded-3 border shadow-sm text-center">
+        <h1 class="display-6 fw-bold text-primary mb-1">⚡ ATOM Studio Ultra</h1>
+        <p class="text-muted mb-0">Clean AI Workspace Powered by Bootstrap</p>
     </div>
 """, unsafe_allow_html=True)
 
-# Safe Secrets Retrieval
+# API Key Retrieval
 api_key = ""
 if "GEMINI_API_KEY" in st.secrets:
     api_key = st.secrets["GEMINI_API_KEY"]
 
-# Sidebar Navigation
+# Sidebar
 with st.sidebar:
-    st.markdown("<h3 style='color: #0F172A;'>⚙️ Control Center</h3>", unsafe_allow_html=True)
+    st.markdown("<h4 class='text-dark fw-bold'>⚙️ Control Center</h4>", unsafe_allow_html=True)
     if api_key:
-        st.success("🟢 API Connected")
+        st.markdown("<div class='alert alert-success py-2 mb-3' role='alert'>🟢 API Connected</div>", unsafe_allow_html=True)
     else:
         api_key = st.text_input("🔑 Gemini API Key:", type="password")
 
-    st.markdown("<div style='margin-top:10px; margin-bottom:10px;'>", unsafe_allow_html=True)
-    if st.button("➕ Sabuwar Hira (New Chat)", use_container_width=True):
+    if st.button("➕ Sabuwar Hira", use_container_width=True):
         start_new_chat()
         st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("<h4 style='color: #475569;'>💬 Hirarrakin Baya</h4>", unsafe_allow_html=True)
+    st.markdown("<h6 class='text-secondary fw-bold'>💬 Hirarrakin Baya</h6>", unsafe_allow_html=True)
     for cid in reversed(list(st.session_state.chats.keys())):
         chat_data = st.session_state.chats[cid]
         label = f"💬 {chat_data['title']}" if cid == st.session_state.current_chat_id else f"📁 {chat_data['title']}"
-        st.markdown("<div style='margin-bottom:6px;'>", unsafe_allow_html=True)
         if st.button(label, key=f"sb_btn_{cid}", use_container_width=True):
             st.session_state.current_chat_id = cid
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
 
-# Main Engine Logic
+# Main Logic
 if api_key:
     client = genai.Client(api_key=api_key.strip())
     current_id = st.session_state.current_chat_id
@@ -250,17 +167,16 @@ if api_key:
                 except Exception as e:
                     st.error(f"Kuskure: {e}")
 
-        # Display Chat Messages
+        # Display Existing Messages
         for msg in current_messages:
             with st.chat_message(msg["role"]):
                 st.write(msg["content"])
 
-        # Chat Input Field
+        # Input
         user_input = st.chat_input("Rubuta tambayarku a nan...")
         
         if user_input:
             current_messages.append({"role": "user", "content": user_input})
-            
             if len(current_messages) == 1:
                 st.session_state.chats[current_id]["title"] = user_input[:15] + "..."
 
@@ -278,15 +194,13 @@ if api_key:
 
     # ---------------- TAB 2: VISION AI ----------------
     with tab2:
-        st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+        st.markdown("<div class='card p-3 shadow-sm mb-3'>", unsafe_allow_html=True)
         uploaded_image = st.file_uploader("Loda Hoto:", type=["jpg", "jpeg", "png"])
         image_prompt = st.text_input("Bani tambaya a kan hoton:", "Mene ne a cikin hoton nan?")
         
         if uploaded_image:
             img = Image.open(uploaded_image)
             st.image(img, use_container_width=True)
-            
-            st.markdown("<div style='margin-top:12px;'>", unsafe_allow_html=True)
             if st.button("🔍 Bincika Hoton", use_container_width=True):
                 with st.spinner("Intelligent Vision yana bincike..."):
                     res_text, err = safe_generate_content(client, [img, image_prompt])
@@ -294,18 +208,14 @@ if api_key:
                         st.info(res_text)
                     else:
                         st.error(err)
-            st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
     # ---------------- TAB 3: DRAW IMAGE ----------------
     with tab3:
-        st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+        st.markdown("<div class='card p-3 shadow-sm mb-3'>", unsafe_allow_html=True)
         gen_prompt = st.text_area("Bayanin hoton da kake so a zana:", value=st.session_state.preset_prompt, height=80)
         style = st.selectbox("Salon Hoto:", ["Photorealistic", "3D Render", "Anime Art", "Cyberpunk Neon"])
-        
-        st.markdown("<div style='margin-top:12px;'>", unsafe_allow_html=True)
         generate_btn = st.button("🚀 Zana Hoto Yanzu", use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
         if generate_btn:
