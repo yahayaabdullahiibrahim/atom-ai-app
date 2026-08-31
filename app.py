@@ -47,9 +47,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Supabase Connection Setup
-supabase_url = st.secrets.get("SUPABASE_URL", "")
-supabase_key = st.secrets.get("SUPABASE_KEY", "")
+# 3. Supabase Connection Setup (Tsaftace URL dinka)
+raw_supabase_url = st.secrets.get("SUPABASE_URL", "")
+supabase_key = st.secrets.get("SUPABASE_KEY", "").strip()
+
+# Cire gurbatattun haruffa ko slashes daga URL
+supabase_url = raw_supabase_url.strip().rstrip('/')
 
 @st.cache_resource
 def init_supabase():
@@ -64,13 +67,13 @@ def make_hashes(password):
 
 # Database Functions using Supabase API
 def add_user(username, password):
-    data = {"username": username, "password": make_hashes(password)}
+    data = {"username": username.strip(), "password": make_hashes(password)}
     res = supabase.table("users").insert(data).execute()
     return res
 
 def login_user(username, password):
     hashed_pass = make_hashes(password)
-    res = supabase.table("users").select("*").eq("username", username).eq("password", hashed_pass).execute()
+    res = supabase.table("users").select("*").eq("username", username.strip()).eq("password", hashed_pass).execute()
     return len(res.data) > 0
 
 # 4. Session State Setup
@@ -94,7 +97,7 @@ def start_new_chat():
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
-def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retries=2):
+def safe_generate_content(client, contents, model='gemini-2.5-flash', max_retries=2):
     for attempt in range(max_retries + 1):
         try:
             res = client.models.generate_content(model=model, contents=contents)
@@ -153,7 +156,7 @@ if not st.session_state.logged_in:
                             add_user(u_signup, p_signup)
                             st.success("An yi rijista a Supabase cikin nasara! Yanzu za ka iya komawa Sign In.")
                         except Exception as e:
-                            st.error("Kuskure: Wataƙila an riga an amfani da wannan Username ɗin.")
+                            st.error("Kuskure: Wataƙila an riga an amfani da wannan Username ɗin ko an samu matsala.")
 
 # 6. Main App Interface (Bayan An Yi Login)
 else:
