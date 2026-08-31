@@ -47,11 +47,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Supabase Connection Setup (Rigakafin Kuskuren PGRST125 100%)
+# 3. Supabase Connection Setup
 raw_supabase_url = st.secrets.get("SUPABASE_URL", "").strip()
 supabase_key = st.secrets.get("SUPABASE_KEY", "").strip()
 
-# Gyara URL ta hanyar cire /rest/v1 ko slashes a karshe
 cleaned_url = raw_supabase_url.split("/rest/v1")[0].rstrip("/")
 
 @st.cache_resource
@@ -65,7 +64,6 @@ supabase: Client = init_supabase()
 def make_hashes(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
-# Database Functions using Supabase API
 def add_user(username, password):
     data = {"username": username.strip(), "password": make_hashes(password)}
     res = supabase.table("users").insert(data).execute()
@@ -97,7 +95,8 @@ def start_new_chat():
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
-def safe_generate_content(client, contents, model='gemini-2.5-flash', max_retries=2):
+# An gyara Model Name zuwa gemini-1.5-flash a nan
+def safe_generate_content(client, contents, model='gemini-1.5-flash', max_retries=2):
     for attempt in range(max_retries + 1):
         try:
             res = client.models.generate_content(model=model, contents=contents)
@@ -111,7 +110,7 @@ def safe_generate_content(client, contents, model='gemini-2.5-flash', max_retrie
                 return None, "⏳ An samu cunkoso. Da fatan sake gwada bayan dakika kadan."
             return None, f"Kuskure: {err_msg}"
 
-# 5. Authentication UI (Sign In / Sign Up)
+# 5. Authentication UI
 if not st.session_state.logged_in:
     st.markdown("""
         <div class="container my-4 p-4 bg-white rounded-3 border shadow-sm text-center" style="max-width: 500px;">
@@ -158,11 +157,10 @@ if not st.session_state.logged_in:
                         except Exception as e:
                             st.error(f"Kuskure daga Supabase: {e}")
 
-# 6. Main App Interface (Bayan An Yi Login)
+# 6. Main App Interface
 else:
     api_key = st.secrets.get("GEMINI_API_KEY", "")
 
-    # Header
     st.markdown(f"""
         <div class="container my-3 p-3 bg-white rounded-3 border shadow-sm d-flex justify-content-between align-items-center">
             <h3 class="fw-bold text-primary m-0">⚡ ATOM Studio Ultra</h3>
@@ -170,7 +168,6 @@ else:
         </div>
     """, unsafe_allow_html=True)
 
-    # Sidebar
     with st.sidebar:
         st.markdown(f"<h5 class='fw-bold'>👤 {st.session_state.username}</h5>", unsafe_allow_html=True)
         if st.button("🚪 Log Out", use_container_width=True):
@@ -196,7 +193,6 @@ else:
                 st.session_state.current_chat_id = cid
                 st.rerun()
 
-    # Main Content Tabs
     if api_key:
         client = genai.Client(api_key=api_key.strip())
         current_id = st.session_state.current_chat_id
