@@ -19,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. CSS Styling
+# 2. Injecting Bootstrap 5 CSS
 st.markdown("""
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -47,17 +47,17 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Supabase Connection Setup (Tsaftace URL & Keys)
-raw_supabase_url = st.secrets.get("SUPABASE_URL", "")
+# 3. Supabase Connection Setup (Rigakafin Kuskuren PGRST125 100%)
+raw_supabase_url = st.secrets.get("SUPABASE_URL", "").strip()
 supabase_key = st.secrets.get("SUPABASE_KEY", "").strip()
 
-# Cire / ko spaces daga URL ta atomatik
-supabase_url = raw_supabase_url.strip().rstrip('/')
+# Gyara URL ta hanyar cire /rest/v1 ko slashes a karshe
+cleaned_url = raw_supabase_url.split("/rest/v1")[0].rstrip("/")
 
 @st.cache_resource
 def init_supabase():
-    if supabase_url and supabase_key:
-        return create_client(supabase_url, supabase_key)
+    if cleaned_url and supabase_key:
+        return create_client(cleaned_url, supabase_key)
     return None
 
 supabase: Client = init_supabase()
