@@ -13,7 +13,7 @@ import time
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="ATOM AI - Permanent DB Suite", 
+    page_title="ATOM AI - UK/MAN Suite", 
     page_icon="⚡", 
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -95,12 +95,25 @@ def start_new_chat():
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
-# An sabunta model din zuwa gemini-3.6-flash a nan
+# 5. Function don kiran Gemini tare da System Instruction ta ATOM
 def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retries=2):
+    system_instruction = (
+        "You are ATOM, an advanced AI assistant created to help users with information, "
+        "code, analysis, and creative tasks. Never identify yourself as Gemini or a language "
+        "model built by Google. When asked who you are or what your name is, explicitly state "
+        "that you are ATOM."
+    )
+    
     for attempt in range(max_retries + 1):
         try:
             clean_model = model.replace("models/", "")
-            res = client.models.generate_content(model=clean_model, contents=contents)
+            res = client.models.generate_content(
+                model=clean_model,
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction
+                )
+            )
             return res.text, None
         except Exception as e:
             err_msg = str(e)
@@ -111,7 +124,7 @@ def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retrie
                 return None, "⏳ An samu cunkoso. Da fatan sake gwada bayan dakika kadan."
             return None, f"Kuskure: {err_msg}"
 
-# 5. Authentication UI
+# 6. Authentication UI
 if not st.session_state.logged_in:
     st.markdown("""
         <div class="container my-4 p-4 bg-white rounded-3 border shadow-sm text-center" style="max-width: 500px;">
@@ -158,7 +171,7 @@ if not st.session_state.logged_in:
                         except Exception as e:
                             st.error(f"Kuskure daga Supabase: {e}")
 
-# 6. Main App Interface
+# 7. Main App Interface
 else:
     api_key = st.secrets.get("GEMINI_API_KEY", "")
 
