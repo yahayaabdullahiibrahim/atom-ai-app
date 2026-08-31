@@ -19,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. Injecting Bootstrap 5 CSS
+# 2. CSS Styling
 st.markdown("""
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -47,11 +47,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Supabase Connection Setup (Tsaftace URL dinka)
+# 3. Supabase Connection Setup (Tsaftace URL & Keys)
 raw_supabase_url = st.secrets.get("SUPABASE_URL", "")
 supabase_key = st.secrets.get("SUPABASE_KEY", "").strip()
 
-# Cire gurbatattun haruffa ko slashes daga URL
+# Cire / ko spaces daga URL ta atomatik
 supabase_url = raw_supabase_url.strip().rstrip('/')
 
 @st.cache_resource
@@ -111,7 +111,7 @@ def safe_generate_content(client, contents, model='gemini-2.5-flash', max_retrie
                 return None, "⏳ An samu cunkoso. Da fatan sake gwada bayan dakika kadan."
             return None, f"Kuskure: {err_msg}"
 
-# 5. Authentication UI
+# 5. Authentication UI (Sign In / Sign Up)
 if not st.session_state.logged_in:
     st.markdown("""
         <div class="container my-4 p-4 bg-white rounded-3 border shadow-sm text-center" style="max-width: 500px;">
@@ -156,7 +156,7 @@ if not st.session_state.logged_in:
                             add_user(u_signup, p_signup)
                             st.success("An yi rijista a Supabase cikin nasara! Yanzu za ka iya komawa Sign In.")
                         except Exception as e:
-                            st.error("Kuskure: Wataƙila an riga an amfani da wannan Username ɗin ko an samu matsala.")
+                            st.error(f"Kuskure daga Supabase: {e}")
 
 # 6. Main App Interface (Bayan An Yi Login)
 else:
@@ -196,7 +196,7 @@ else:
                 st.session_state.current_chat_id = cid
                 st.rerun()
 
-    # Engine Logic
+    # Main Content Tabs
     if api_key:
         client = genai.Client(api_key=api_key.strip())
         current_id = st.session_state.current_chat_id
