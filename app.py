@@ -95,8 +95,8 @@ def start_new_chat():
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
-# An sabunta kood din kiran model a nan
-def safe_generate_content(client, contents, model='gemini-2.0-flash', max_retries=2):
+# An sabunta model din zuwa gemini-3.6-flash a nan
+def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retries=2):
     for attempt in range(max_retries + 1):
         try:
             clean_model = model.replace("models/", "")
