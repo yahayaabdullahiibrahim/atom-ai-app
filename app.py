@@ -13,7 +13,7 @@ import time
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="ATOM AI - UK/MAN Suite", 
+    page_title="ATOM AI - Permanent DB Suite", 
     page_icon="⚡", 
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -95,11 +95,12 @@ def start_new_chat():
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
-# An gyara Model Name zuwa gemini-1.5-flash a nan
-def safe_generate_content(client, contents, model='gemini-1.5-flash', max_retries=2):
+# An sabunta kood din kiran model a nan
+def safe_generate_content(client, contents, model='gemini-2.0-flash', max_retries=2):
     for attempt in range(max_retries + 1):
         try:
-            res = client.models.generate_content(model=model, contents=contents)
+            clean_model = model.replace("models/", "")
+            res = client.models.generate_content(model=clean_model, contents=contents)
             return res.text, None
         except Exception as e:
             err_msg = str(e)
