@@ -13,7 +13,7 @@ import time
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="ATOM AI - Permanent DB Suite", 
+    page_title="ATOM AI - UK/MAN Suite", 
     page_icon="⚡", 
     layout="wide",
     initial_sidebar_state="collapsed"
