@@ -13,7 +13,7 @@ import time
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="ATOM AI - UK/MAN Suite", 
+    page_title="ATOM AI - Permanent DB Suite", 
     page_icon="⚡", 
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -48,15 +48,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 3. Supabase Connection Setup
-raw_supabase_url = st.secrets.get("SUPABASE_URL", "").strip()
-supabase_key = st.secrets.get("SUPABASE_KEY", "").strip()
+# Muna amfani da bayanan Supabase da ka samar
+RAW_SUPABASE_URL = "https://jvgpylvkpgjoswjeidqb.supabase.co"
+SUPABASE_KEY = "sb_publishable_WeaFiG2_iJmReIU0KPXsFw_LPA_9S1K"
 
-cleaned_url = raw_supabase_url.split("/rest/v1")[0].rstrip("/")
+supabase_url = st.secrets.get("SUPABASE_URL", RAW_SUPABASE_URL).strip()
+supabase_key = st.secrets.get("SUPABASE_KEY", SUPABASE_KEY).strip()
 
 @st.cache_resource
 def init_supabase():
-    if cleaned_url and supabase_key:
-        return create_client(cleaned_url, supabase_key)
+    if supabase_url and supabase_key:
+        try:
+            return create_client(supabase_url, supabase_key)
+        except Exception as e:
+            st.error(f"Kuskuren Supabase Client: {e}")
+            return None
     return None
 
 supabase: Client = init_supabase()
@@ -95,7 +101,7 @@ def start_new_chat():
     st.session_state.chats[new_id] = {"title": "Sabuwar Hira", "messages": []}
     st.session_state.current_chat_id = new_id
 
-# 5. Function don kiran Gemini tare da System Instruction ta ATOM
+# 5. Gemini API Function tare da System Instruction na ATOM
 def safe_generate_content(client, contents, model='gemini-3.6-flash', max_retries=2):
     system_instruction = (
         "You are ATOM, an advanced AI assistant created to help users with information, "
@@ -134,7 +140,7 @@ if not st.session_state.logged_in:
     """, unsafe_allow_html=True)
 
     if not supabase:
-        st.error("⚠️ An kasa haɗawa da Supabase. Tabbatar ka saka SUPABASE_URL da SUPABASE_KEY a Secrets.")
+        st.error("⚠️ An kasa haɗawa da Supabase. Tabbatar bayanan Supabase URL da Key suna daidai.")
     else:
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
@@ -173,7 +179,9 @@ if not st.session_state.logged_in:
 
 # 7. Main App Interface
 else:
-    api_key = st.secrets.get("GEMINI_API_KEY", "")
+    # Muna amfani da Gemini API Key dinka idan ba a samu a Streamlit secrets ba
+    DEFAULT_GEMINI_KEY = "AQ.Ab8RN6J2NgWmrZEYSIML2Bxt-EsOzJsD5Pd-GFe76o0_WjCAVQ"
+    api_key = st.secrets.get("GEMINI_API_KEY", DEFAULT_GEMINI_KEY)
 
     st.markdown(f"""
         <div class="container my-3 p-3 bg-white rounded-3 border shadow-sm d-flex justify-content-between align-items-center">
@@ -300,4 +308,4 @@ else:
                     st.caption(item["prompt"])
                     st.markdown("---")
     else:
-        st.error("⚠️ Ba a samun API Key ba. Tabbatar ka saka GEMINI_API_KEY a Streamlit Secrets ko a Sidebar.")
+        st.error("⚠️ Ba a samun API Key ba. Tabbatar ka saka GEMINI_API_KEY.")
